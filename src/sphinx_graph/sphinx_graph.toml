@@ -1,0 +1,359 @@
+comment = "Sphinx Build Process"
+
+[objects."sphinx.cmd.build.build_main"]
+type = "function"
+description = """
+The main entry point for the build process.
+"""
+calls = [
+    # TODO colorize output setting
+    {type="enter", context="with", name="sphinx.util.docutils.patch_docutils"},
+    {type="enter", context="with", name="sphinx.util.docutils.docutils_namespace"},
+    {name="sphinx.application.Sphinx.__init__"},
+    {name="sphinx.application.Sphinx.build"},
+    {type="exit", context="with", name="sphinx.util.docutils.patch_docutils"},
+    {type="exit", context="with", name="sphinx.util.docutils.docutils_namespace"},
+]
+
+[objects."sphinx.util.docutils.patch_docutils"]
+type = "function"
+description = """
+Applies some minor patches to the docutils library,
+including setting the DOCUTILSCONFIG environment variable.
+"""
+
+[objects."sphinx.util.docutils.docutils_namespace"]
+type = "function"
+description = """
+Resets the global state of the directives and roles lookups,
+once the build process is complete.
+"""
+
+[objects."sphinx.application.Sphinx.__init__"]
+type = "method"
+description = """
+Initializes the Sphinx application object.
+"""
+calls = [
+    {name="sphinx.config.Config.read"},
+    {name="sphinx.application.Sphinx._init_i18n"},
+    {type="enter", context="for", name="builtin_extensions"},
+    {name="sphinx.application.Sphinx.setup_extension", obj_type="method", warn_no_object=false},
+    {type="exit", context="for", name="builtin_extensions"},
+    {type="enter", context="for", name="user_extensions"},
+    {name="sphinx.application.Sphinx.setup_extension", obj_type="method", warn_no_object=false},
+    {type="exit", context="for", name="user_extensions"},
+    {name="sphinx.config.Config.Config.setup"},
+    {type="emit", name="config-inited"},
+    {name="sphinx.application.Sphinx._init_env"},
+    {name="sphinx.application.Sphinx.create_builder"},
+    {name="sphinx.application.Sphinx._post_init_env"},
+    {name="sphinx.application.Sphinx._init_builder"},
+]
+
+[objects."sphinx.application.Sphinx._init_i18n"]
+type = "method"
+description = """
+Load translated strings from the configured localedirs
+if enabled in the configuration.
+"""
+
+[objects."sphinx.config.Config.read"]
+type = "method"
+description = """
+Reads the configuration from the configuration file.
+"""
+
+[objects."sphinx.config.Config.Config.setup"]
+type = "method"
+description = """
+Call the setup() method if it exists in the conf.py file.
+"""
+
+[objects."sphinx.application.Sphinx._init_env"]
+type = "method"
+description = """
+Initialize the BuildEnvironment object,
+or load from cached file if available and freshenv is False.
+"""
+calls = [
+    {type="enter", context="if", name="no cache", warn_no_object=false},
+    {name="sphinx.environment.BuildEnvironment.__init__"},
+    {type="exit", context="if", name="no cache"},
+]
+
+[objects."sphinx.environment.BuildEnvironment.__init__"]
+type = "method"
+description = """
+Initializes the BuildEnvironment object.
+"""
+calls = [
+    {name="sphinx.environment.BuildEnvironment.setup"},
+]
+
+[objects."sphinx.environment.BuildEnvironment.setup"]
+type = "method"
+description = """
+Sets up the BuildEnvironment object.
+"""
+calls = [
+    {type="enter", context="for", name="domain", warn_no_object=false},
+    {name="sphinx.domains.Domain.setup"},
+    {type="exit", context="for", name="domain"},
+]
+
+[objects."sphinx.domains.Domain.setup"]
+type = "method"
+description = """
+Sets up the domain object.
+"""
+
+[objects."sphinx.application.Sphinx.create_builder"]
+type = "method"
+description = """
+Initialise the Builder object.
+"""
+
+[objects."sphinx.application.Sphinx._post_init_env"]
+type = "method"
+calls = [
+    {type="enter",  context="if", name="freshenv", warn_no_object=false},
+    {name="sphinx.environment.BuildEnvironment.find_files", warn_no_object=false, obj_type="method"},
+    {type="exit", context="if", name="freshenv"},
+]
+
+[objects."sphinx.application.Sphinx._init_builder"]
+type = "method"
+calls = [
+    {name="sphinx.builder.Builder.init", obj_type="method"},  # TODO inits for different builders
+    {type="emit", name="builder-inited"},
+]
+
+
+[objects."sphinx.application.Sphinx.build"]
+type = "method"
+description = """
+Builds the documentation.
+"""
+calls = [
+    {type="enter",  context="if", name="force_all"},
+    {name="sphinx.builders.Builder.build_all"},
+    {type="exit", context="if", name="force_all"},
+    {type="enter", context="elif", name="filenames"},
+    {name="sphinx.builders.Builder.build_specific"},
+    {type="exit", context="elif", name="filenames"},
+    {type="enter", context="else", name=""},
+    {name="sphinx.builders.Builder.build_update"},
+    {type="exit", context="else", name=""},
+    {type="emit", name="build-finished"},
+]
+
+[objects."sphinx.builders.Builder.build_all"]
+type = "method"
+description = """
+Build all documents.
+"""
+calls = [
+    {name="sphinx.builders.Builder.compile_all_catalogs", obj_type="method"},
+    {name="sphinx.builders.Builder.build"},
+]
+
+[objects."sphinx.builders.Builder.build_specific"]
+type = "method"
+description = """
+Build only specific documents.
+"""
+calls = [
+    {name="sphinx.builders.Builder.compile_specific_catalogs", obj_type="method"},
+    {name="sphinx.builders.Builder.build"},
+]
+
+[objects."sphinx.builders.Builder.build_update"]
+type = "method"
+description = """
+Build only updated documents.
+"""
+calls = [
+    {name="sphinx.builders.Builder.compile_update_catalogs", obj_type="method"},
+    {name="sphinx.builders.Builder.get_outdated_docs", obj_type="method"},
+    {name="sphinx.builders.Builder.build"},
+]
+
+[objects."sphinx.builders.Builder.build"]
+type = "method"
+calls = [
+    {name="sphinx.builders.Builder.read"},  # TODO return updated_docnames
+    # TODO next calls
+]
+
+[objects."sphinx.builders.Builder.read"]
+type = "method"
+description = """
+(Re-)read all files new or changed since last update.
+"""
+calls = [
+    {name="sphinx.environment.BuildEnvironment.find_files", obj_type="method"},
+    {name="sphinx.environment.BuildEnvironment.get_outdated_files", obj_type="method"},
+    {type="emit", name="env-get-outdated"},
+    {type="enter", context="for", name="removed"},
+    {type="emit", name="env-purge-doc"},
+    {name="sphinx.environment.BuildEnvironment.clear_doc"},
+    {type="exit", context="for", name="removed"},
+    {type="emit", name="env-before-read-docs"},
+    {type="enter", context="if", name="run_parallel"},
+    {name="sphinx.builders.Builder._read_parallel"},
+    {type="exit", context="if", name="run_parallel"},
+    {type="enter", context="else", name=""},
+    {name="sphinx.builders.Builder._read_serial"},
+    {type="exit", context="else", name=""},
+    {type="emit", name="env-updated"},
+]
+
+[objects."sphinx.environment.BuildEnvironment.clear_doc"]
+type = "method"
+calls = [
+    {type="enter", context="for", name="domains"},
+    {name="sphinx.domains.Domain.clear_doc", obj_type="method", warn_no_object=false},
+    {type="exit", context="for", name="domains"},
+]
+
+[objects."sphinx.builders.Builder._read_serial"]
+type = "method"
+calls = [
+    {type="enter", context="for", name="docname"},
+    {type="emit", name="env-before-read-docs"},
+    {name="sphinx.environment.BuildEnvironment.clear_doc"},
+    {name="sphinx.builders.Builder.read_doc"},
+    {type="exit", context="for", name="docname"},
+]
+
+[objects."sphinx.builders.Builder._read_parallel"]
+type = "method"
+calls = [
+    {type="enter", context="for", name="docname"},
+    {type="emit", name="env-before-read-docs"},
+    {name="sphinx.environment.BuildEnvironment.clear_doc"},
+    {type="exit", context="for", name="docname"},
+    {type="enter", context="fork", name="docnames_chunk"},
+    {type="enter", context="for", name="docname"},
+    {name="sphinx.builders.Builder.read_doc"},
+    {type="exit", context="for", name="docname"},
+    {name="sphinx.environment.BuildEnvironment.merge_info_from"},
+    {type="exit", context="fork", name="docnames_chunk"},
+]
+
+[objects."sphinx.builders.Builder.read_doc"]
+type = "method"
+calls = [
+    # TODO next calls
+]
+
+
+[events.config-inited.callbacks]
+"sphinx.builders.epub3.convert_epub_css_files" = {priority = 800, doc = """
+Convert string styled epub_css_files to tuple style.
+"""}
+"sphinx.builders.html.convert_html_css_files" = {priority = 800, doc = """
+Convert string styled html_css_files to tuple style.
+"""}
+"sphinx.builders.html.convert_html_js_files" = {priority = 800, doc = """
+Convert string styled html_js_files to tuple style.
+"""}
+"sphinx.builders.html.validate_html_extra_path" = {priority = 800, doc = """
+Check html_extra_paths setting.
+"""}
+"sphinx.builders.html.validate_html_static_path" = {priority = 800, doc = """
+Check html_static_paths setting.
+"""}
+"sphinx.builders.html.validate_html_logo" = {priority = 800, doc = """
+Check html_logo setting.
+"""}
+"sphinx.builders.html.validate_html_favicon" = {priority = 800, doc = """
+Check html_favicon setting.
+"""}
+"sphinx.builders.html.error_on_html_4" = {priority = 800, doc = """
+Check HTML 4 builder is no longer being used.
+"""}
+"sphinx.builders.gettext._gettext_compact_validator" = {priority = 800, doc = """
+Convert gettext_compact integer to boolean.
+"""}
+"sphinx.builders.latex.validate_config_values" = {priority = 800, doc = """
+Remove unknown latex_elements keys.
+"""}
+"sphinx.builders.latex.validate_latex_theme_options" = {priority = 800, doc = """
+Remove unknown latex_theme_options keys.
+"""}
+"sphinx.builders.linkcheck.compile_linkcheck_allowed_redirects" = {priority = 800, doc = """
+Compile patterns in linkcheck_allowed_redirects
+to the regexp objects.
+"""}
+"sphinx.config.convert_source_suffix" = {priority = 800, doc = """
+Convert old styled source_suffix to new style.
+"""}
+"sphinx.config.convert_highlight_options" = {priority = 800, doc = """
+Convert old styled highlight_options to new style.
+"""}
+"sphinx.config.init_numfig_format" = {priority = 800, doc = """
+Initialize numfig_format defaults.
+"""}
+"sphinx.config.correct_copyright_year" = {priority = 800, doc = """
+Synchronize copyright year with
+SOURCE_DATE_EPOCH environment variable (if set).
+"""}
+"sphinx.config.check_confval_types" = {priority = 800, doc = """
+Check all values against the expected types.
+"""}
+"sphinx.config.check_primary_domain" = {priority = 800, doc = """
+Check set primary_domain is available.
+"""}
+"sphinx.extension.verify_needs_extensions" = {priority = 800, doc = """
+Check that extensions mentioned in needs_extensions
+satisfy the version requirement.
+"""}
+"sphinx.registry.merge_source_suffix" = {priority = 800, doc = """
+Merge any user-specified source_suffix
+with any added by extensions.
+"""}
+
+[events.builder-inited.callbacks]
+"sphinx.builders.epub3.validate_config_values" = {priority=500, doc = """
+If epub3 builder is enabled,
+check required config values are set.
+"""}
+"sphinx.builders.html.validate_math_renderer" = {priority=500, doc = """
+Check math_renderer_name is valid.
+"""}
+"sphinx.builders.latex.install_packages_for_ja" = {priority=500, doc = """
+Add packages for Japanese if necessary.
+"""}
+"sphinx.domains.cpp.setup.initStuff" = {priority=500, doc = """
+Some initializations for the C++ domain.
+"""}
+
+[events.env-get-outdated.callbacks]
+"sphinx.config.check_root_doc" = {priority = 500, doc = """
+Adjust root_doc to 'contents' to support an old project
+which does not have any root_doc setting.
+"""}
+# TODO all below use default inherited from EnvironmentCollector, returns []
+# grey out?
+"sphinx.environment.collectors.dependencies.DependenciesCollector.get_outdated_docs" = {priority = 500}
+"sphinx.environment.collectors.asset.ImageCollector.get_outdated_docs" = {priority = 500}
+"sphinx.environment.collectors.asset.DownloadFileCollector.get_outdated_docs" = {priority = 500}
+"sphinx.environment.collectors.metadata.MetadataCollector.get_outdated_docs" = {priority = 500}
+"sphinx.environment.collectors.title.TitleCollector.get_outdated_docs" = {priority = 500}
+"sphinx.environment.collectors.toctree.TocTreeCollector.get_outdated_docs" = {priority = 500}
+
+[events.env-purge-doc.callbacks]
+"sphinx.environment.collectors.dependencies.DependenciesCollector.clear_doc" = {priority = 500}
+"sphinx.environment.collectors.asset.ImageCollector.clear_doc" = {priority = 500}
+"sphinx.environment.collectors.asset.DownloadFileCollector.clear_doc" = {priority = 500}
+"sphinx.environment.collectors.metadata.MetadataCollector.clear_doc" = {priority = 500}
+"sphinx.environment.collectors.title.TitleCollector.clear_doc" = {priority = 500}
+"sphinx.environment.collectors.toctree.TocTreeCollector.clear_doc" = {priority = 500}
+
+[events.env-before-read-docs.callbacks]
+
+[events.env-updated.callbacks]
+
+[events.build-finished.callbacks]

@@ -1,0 +1,53 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "sphinx_graph"
+authors = [{name = "Chris Sewell", email = "chrisj_sewell@hotmail.com"}]
+license = {file = "LICENSE"}
+classifiers = ["License :: OSI Approved :: MIT License"]
+dynamic = ["version", "description"]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "graphviz~=0.20.3",
+    "pydantic~=2.7",
+]
+
+[tool.ruff.lint]
+extend-select = [
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    # "FURB",# refurb (modernising code)
+    "I",   # isort
+    "ICN", # flake8-import-conventions
+    "ISC", # flake8-implicit-str-concat
+    "N",   # pep8-naming
+    "PERF",# perflint (performance anti-patterns)
+    "PGH", # pygrep-hooks
+    "PIE", # flake8-pie
+    "PL",  # pylint
+    "PTH", # flake8-use-pathlib
+    "RUF", # Ruff-specific rules
+    "SIM", # flake8-simplify
+    "UP",  # pyupgrade
+    # "T20", # flake8-print
+]
+extend-ignore = ["ISC001"]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = svg
+
+[testenv]
+basepython = python3.11
+usedevelop = true
+
+[testenv:svg]
+commands = python -m sphinx_graph
+"""
