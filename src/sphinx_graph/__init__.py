@@ -6,13 +6,15 @@ import sys
 from typing import Literal
 
 from graphviz import Digraph
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from . import html_like as html
 
 
 class Data(BaseModel):
     """The data to build the graph from."""
+
+    model_config = ConfigDict(extra="forbid")
 
     comment: str
     objects: dict[str, "Object"]
@@ -24,13 +26,19 @@ class Data(BaseModel):
 class Object(BaseModel):
     """A python object."""
 
+    model_config = ConfigDict(extra="forbid")
+
     description: str = ""
     type: Literal["function", "method"] = "method"
     calls: list["Call"] = Field(default_factory=list)
+    overridable: bool = False
+    """Whether the object can be overridden by a subclass."""
 
 
 class Event(BaseModel):
     """A sphinx event."""
+
+    model_config = ConfigDict(extra="forbid")
 
     callbacks: dict[str, "EventCallback"]
 
@@ -38,9 +46,14 @@ class Event(BaseModel):
 class EventCallback(BaseModel):
     """A callback for a sphinx event."""
 
+    model_config = ConfigDict(extra="forbid")
+
     priority: int
     doc: str = ""
     hide: bool = False
+    """Whether to hide the callback from the graph.
+    (mainly used for EnvironmentCollector default events)
+    """
 
 
 class Transform(BaseModel):
@@ -98,6 +111,8 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
         table.add_row(
             [html.TableCell(html.u(path2name(path, object_data.type)), align="CENTER")]
         )
+        if object_data.overridable:
+            table.add_row([html.TableCell(html.i("overridable"), align="CENTER")])
 
         if object_data.description:
             table.add_row(

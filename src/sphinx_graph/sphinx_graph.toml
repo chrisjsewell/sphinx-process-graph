@@ -118,6 +118,12 @@ calls = [
     {type="emit", text="builder-inited"},
 ]
 
+[objects."sphinx.builder.Builder.init"]
+overridable = true
+description = """
+Builder subclass specific initialization
+"""
+
 
 [objects."sphinx.application.Sphinx.build"]
 description = """
@@ -164,22 +170,24 @@ calls = [
     {text="sphinx.builders.Builder.build"},
 ]
 
+[objects."sphinx.builders.Builder.get_outdated_docs"]
+overridable = true
+description = """
+Determine which output documents need to be re-written.
+(only used in the write phase)
+"""
+
 [objects."sphinx.builders.Builder.build"]
 calls = [
     {text="sphinx.builders.Builder.read"},
     {text="sphinx.environment.BuildEnvironment.check_dependents"},
     {type="enter", context="if", text="updated_docnames"},
     {text="cache BuildEnvironment to disk", is_ref=false},
-    # pickle the environment
-    # check consistency
+    {text="sphinx.environment.BuildEnvironment.check_consistency"},
     {type="exit", context="if", text="updated_docnames"},
-    # TODO next calls
-
-]
-
-[objects."sphinx.environment.BuildEnvironment.check_dependents"]
-calls = [
-    {type="emit", text="env-get-updated"},
+    {text="sphinx.builders.Builder.write"},
+    {text="sphinx.builders.Builder.finish"},
+    # TODO finish_tasks
 ]
 
 [objects."sphinx.builders.Builder.read"]
@@ -188,7 +196,7 @@ description = """
 """
 calls = [
     {text="sphinx.environment.BuildEnvironment.find_files", obj_type="method"},
-    {text="sphinx.environment.BuildEnvironment.get_outdated_files", obj_type="method"},
+    {text="sphinx.environment.BuildEnvironment.get_outdated_files"},
     {type="emit", text="env-get-outdated"},
     {type="enter", context="for", text="removed"},
     {type="emit", text="env-purge-doc"},
@@ -203,6 +211,20 @@ calls = [
     {type="exit", context="else", text=""},
     {type="emit", text="env-updated"},
 ]
+
+[objects."sphinx.environment.BuildEnvironment.find_files"]
+description = """
+Find all source files in the source directory,
+accounting for included/excluded patterns and source_suffix.
+"""
+
+[objects."sphinx.environment.BuildEnvironment.get_outdated_files"]
+description = """
+Compute (added, changed, removed) documents.
+If any configuration is changed that has rebuild="env",
+then all documents are considered added,
+otherwise changed are based on file modification time.
+"""
 
 [objects."sphinx.environment.BuildEnvironment.clear_doc"]
 calls = [
@@ -288,6 +310,34 @@ calls = [
     {type="exit", context="for", text="domain"},
     {type="emit", text="env-merge-info"},
 ]
+
+[objects."sphinx.environment.BuildEnvironment.check_dependents"]
+calls = [
+    {type="emit", text="env-get-updated"},
+]
+
+[objects."sphinx.environment.BuildEnvironment.check_consistency"]
+calls = [
+    {text="Ensure doc root, orphan, or referenced", is_ref=false},
+    {type="enter", context="for", text="domain"},
+    {text="sphinx.domains.Domain.check_consistency", obj_type="method", warn_no_object=false},
+    {type="exit", context="for", text="domain"},
+    {type="emit", text="env-check-consistency"},
+]
+
+[objects."sphinx.builders.Builder.write"]
+overridable = true
+description = """
+Write output files.
+"""
+# TODO implementations
+
+[objects."sphinx.builders.Builder.finish"]
+overridable = true
+description = """
+Finish the build process.
+"""
+# TODO implementations
 
 [transforms]
 "sphinx.transforms.ApplySourceWorkaround" = {priority = 10, doc = """
@@ -414,8 +464,9 @@ Collect objects to Sphinx domains for cross references.
 "sphinx.transforms.DoctreeReadEvent" = {priority = 880, emit="doctree-read", doc = """
 Emit doctree-read event.
 """}
-"sphinx.versioning.UIDTransform" = {priority = 880, doc = """
+"sphinx.versioning.UIDTransform" = {priority = 880, hide=true, doc = """
 Add UIDs to doctree for versioning.
+(only used in gettext builder and gettext_uuid=True)
 """}
 "sphinx.transforms.i18n.AddTranslationClasses" = {priority = 950, doc = """
 Add ``translated`` or ``untranslated`` classes to indicate translation status.
@@ -567,6 +618,8 @@ For numbered toctrees, assign section numbers to each heading,
 and figure numbers to each figure.
 Return docnames whose section numbers changed.
 """}
+
+[events.env-check-consistency.callbacks]
 
 [events.env-merge-info.callbacks]
 "sphinx.environment.collectors.dependencies.DependenciesCollector.merge_other" = {priority = 500}
