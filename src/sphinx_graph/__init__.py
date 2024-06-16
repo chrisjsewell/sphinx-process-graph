@@ -123,6 +123,9 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
 
     graph = Digraph(comment=data.comment, graph_attr={"rankdir": "LR"})
 
+    transforms_id = "_apply_transforms"
+    post_transforms_id = "_apply_post_transforms"
+
     for path, object_data in data.objects.items():
         table = html.Table(border=0, cellspacing=0)
         table.add_row(
@@ -217,13 +220,13 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
                     case "apply_transforms":
                         graph.edge(
                             path + ":" + str(port_num),
-                            "_apply_transforms",
+                            transforms_id,
                             style="dashed",
                         )
                     case "apply_post_transforms":
                         graph.edge(
                             path + ":" + str(port_num),
-                            "_apply_post_transforms",
+                            post_transforms_id,
                             style="dashed",
                         )
                     case _:
@@ -234,48 +237,10 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
         )
 
     for name, event_data in data.events.items():
-        table = html.Table(border=0, cellspacing=0)
-        table.add_row(
-            [
-                html.TableCell(
-                    html.u(name), align="CENTER", colspan=2, bgcolor="lightblue"
-                )
-            ]
-        )
-        for callback_name, callback_data in event_data.callbacks.items():
-            if callback_data.hide:
-                continue
-            table.add_row(
-                [
-                    html.TableCell(
-                        callback_name[len("sphinx.") :]
-                        if callback_name.startswith("sphinx.")
-                        else callback_name,
-                        align="LEFT",
-                        border=1,
-                        cellpadding=3,
-                    ),
-                    html.TableCell(
-                        str(callback_data.priority), align="CENTER", border=1
-                    ),
-                ]
-            )
-            if callback_data.doc:
-                table.add_row(
-                    [
-                        html.TableCell(
-                            callback_data.doc.replace("\n", html.br("LEFT")),
-                            align="LEFT",
-                            colspan=2,
-                        )
-                    ]
-                )
-        graph.node(
-            name, label=html.html(str(table)), shape="box", style="rounded", margin=".2"
-        )
+        add_event_node(name, event_data, graph)
 
-    add_transforms_node(data, graph)
-    add_post_transforms_node(data, graph)
+    add_transforms_node(data, graph, transforms_id)
+    add_post_transforms_node(data, graph, post_transforms_id)
 
     return graph
 
@@ -290,7 +255,45 @@ def path2name(path: str, type: Literal["function", "method", None] = None) -> st
     return path
 
 
-def add_transforms_node(data: Data, graph: Digraph):
+def add_event_node(name: str, data: Event, graph: Digraph):
+    """Add a node for an event, with its callbacks."""
+    table = html.Table(border=0, cellspacing=0)
+    table.add_row(
+        [html.TableCell(html.u(name), align="CENTER", colspan=2, bgcolor="lightblue")]
+    )
+    for callback_name, callback_data in data.callbacks.items():
+        if callback_data.hide:
+            continue
+        table.add_row(
+            [
+                html.TableCell(
+                    callback_name[len("sphinx.") :]
+                    if callback_name.startswith("sphinx.")
+                    else callback_name,
+                    align="LEFT",
+                    border=1,
+                    cellpadding=3,
+                ),
+                html.TableCell(str(callback_data.priority), align="CENTER", border=1),
+            ]
+        )
+        if callback_data.doc:
+            table.add_row(
+                [
+                    html.TableCell(
+                        callback_data.doc.replace("\n", html.br("LEFT")),
+                        align="LEFT",
+                        colspan=2,
+                    )
+                ]
+            )
+    graph.node(
+        name, label=html.html(str(table)), shape="box", style="rounded", margin=".2"
+    )
+
+
+def add_transforms_node(data: Data, graph: Digraph, node_id: str):
+    """Add a node for the transforms."""
     table = html.Table(border=0, cellspacing=0)
     table.add_row(
         [
@@ -318,7 +321,7 @@ def add_transforms_node(data: Data, graph: Digraph):
             ]
         )
         if tr_data.emit:
-            graph.edge("_apply_transforms:" + tr_name, tr_data.emit)
+            graph.edge(f"{node_id}:{tr_name}", tr_data.emit)
         if tr_data.doc:
             table.add_row(
                 [
@@ -330,22 +333,19 @@ def add_transforms_node(data: Data, graph: Digraph):
                 ]
             )
     graph.node(
-        "_apply_transforms",
-        label=html.html(str(table)),
-        shape="box",
-        style="rounded",
-        margin=".2",
+        node_id, label=html.html(str(table)), shape="box", style="rounded", margin=".2"
     )
 
 
-def add_post_transforms_node(data: Data, graph: Digraph):
+def add_post_transforms_node(data: Data, graph: Digraph, node_id: str):
+    """Add a node for the post transforms."""
     table = html.Table(border=0, cellspacing=0)
     table.add_row(
         [
             html.TableCell(
                 html.u("Post Transforms"),
                 align="CENTER",
-                colspan=4,
+                colspan=3,
                 bgcolor="lightyellow",
             )
         ]
@@ -363,29 +363,26 @@ def add_post_transforms_node(data: Data, graph: Digraph):
                     border=1,
                     cellpadding=3,
                 ),
-                html.TableCell(str(tr_data.priority), align="CENTER", border=1),
-                html.TableCell(",".join(tr_data.builders), align="LEFT", border=1),
                 html.TableCell(
-                    ",".join(tr_data.formats), align="LEFT", border=1, port=tr_name
+                    ",".join(tr_data.formats + tr_data.builders),
+                    align="LEFT",
+                    border=1,
+                    port=tr_name,
                 ),
             ]
         )
         if tr_data.emit:
-            graph.edge("_apply_post_transforms:" + tr_name, tr_data.emit)
+            graph.edge(f"{node_id}:{tr_name}", tr_data.emit)
         if tr_data.doc:
             table.add_row(
                 [
                     html.TableCell(
                         tr_data.doc.replace("\n", html.br("LEFT")),
                         align="LEFT",
-                        colspan=4,
+                        colspan=3,
                     )
                 ]
             )
     graph.node(
-        "_apply_post_transforms",
-        label=html.html(str(table)),
-        shape="box",
-        style="rounded",
-        margin=".2",
+        node_id, label=html.html(str(table)), shape="box", style="rounded", margin=".2"
     )

@@ -145,7 +145,7 @@ description = """
 Build all documents.
 """
 calls = [
-    { text = "sphinx.builders.Builder.compile_all_catalogs", obj_type = "method" },
+    { text = "sphinx.builders.Builder.compile_all_catalogs", obj_type = "method", warn_no_object = false },
     { text = "sphinx.builders.Builder.build" },
 ]
 
@@ -154,7 +154,7 @@ description = """
 Build only specific documents.
 """
 calls = [
-    { text = "sphinx.builders.Builder.compile_specific_catalogs", obj_type = "method" },
+    { text = "sphinx.builders.Builder.compile_specific_catalogs", obj_type = "method", warn_no_object = false },
     { text = "sphinx.builders.Builder.build" },
 ]
 
@@ -163,7 +163,7 @@ description = """
 Build only updated documents.
 """
 calls = [
-    { text = "sphinx.builders.Builder.compile_update_catalogs", obj_type = "method" },
+    { text = "sphinx.builders.Builder.compile_update_catalogs", obj_type = "method", warn_no_object = false },
     { text = "sphinx.builders.Builder.get_outdated_docs", obj_type = "method" },
     { text = "sphinx.builders.Builder.build" },
 ]
@@ -328,8 +328,7 @@ Base implementation used by builders:
 applehelp, dirhtml, dummy, epub, gettext, html,
 htmlhelp, json, linkcheck, pickle,
 pseudoxml, qthelp, text, xml
-Not:
-changes, latex, man, singlehtml, texinfo
+Not: changes, latex, man, singlehtml, texinfo
 """
 calls = [
     { text = "sphinx.builders.Builder.prepare_writing" },
@@ -365,12 +364,43 @@ calls = [
     { type = "exit", context = "for", text = "docname" },
 ]
 
+[objects."sphinx.builders.Builder._write_parallel"]
+calls = [
+    { type = "enter", context = "for", text = "docname" },
+    { text = "sphinx.environment.BuildEnvironment.get_and_resolve_doctree" },
+    { text = "sphinx.builders.Builder.write_doc_serialized" },
+    { type = "exit", context = "for", text = "docname" },
+    { type = "enter", context = "fork", text = "doctrees_chunk" },
+    { type = "enter", context = "for", text = "doctree" },
+    { text = "sphinx.builders.Builder.write_doc" },
+    { type = "exit", context = "for", text = "doctree" },
+    { type = "exit", context = "fork", text = "doctrees_chunk" },
+]
+
 [objects."sphinx.environment.BuildEnvironment.get_and_resolve_doctree"]
 description = """
 Retrieve the doctree from the cache, apply post-transforms,
 and resolve toctree nodes.
 """
-calls = [{ type = "apply_post_transforms", text = "apply post-transforms" }]
+calls = [
+    { type = "apply_post_transforms", text = "apply post-transforms" },
+    { type = "emit", text = "doctree-resolved" },
+]
+
+[objects."sphinx.builders.Builder.write_doc_serialized"]
+overridable = true
+description = """
+Handle parts of write_doc that must be called in the main process
+if parallel build is active.
+"""
+# TODO html implementations
+
+[objects."sphinx.builders.Builder.write_doc"]
+overridable = true
+description = """
+write output to the filesystem.
+"""
+# TODO html implementations
 
 [objects."sphinx.builders.Builder.finish"]
 overridable = true
@@ -571,7 +601,8 @@ Fallback various desc_* nodes to inline if translator does not support them.
 "sphinx.transforms.post_transforms.PropagateDescDomain" = { priority = 200, builders = [
 ], formats = [
 ], doc = """
-Add the domain name of the parent node as a class in each desc_signature node.
+Add the domain name of the parent node
+as a class in each desc_signature node.
 """ }
 "sphinx.builders.latex.transforms.SubstitutionDefinitionsRemover" = { priority = 221, builders = [
 ], formats = [
@@ -780,8 +811,6 @@ and figure numbers to each figure.
 Return docnames whose section numbers changed.
 """ }
 
-[events.env-check-consistency.callbacks]
-
 [events.env-merge-info.callbacks]
 "sphinx.environment.collectors.dependencies.DependenciesCollector.merge_other" = { priority = 500 }
 "sphinx.environment.collectors.asset.ImageCollector.merge_other" = { priority = 500 }
@@ -789,5 +818,9 @@ Return docnames whose section numbers changed.
 "sphinx.environment.collectors.metadata.MetadataCollector.merge_other" = { priority = 500 }
 "sphinx.environment.collectors.title.TitleCollector.merge_other" = { priority = 500 }
 "sphinx.environment.collectors.toctree.TocTreeCollector.merge_other" = { priority = 500 }
+
+[events.env-check-consistency.callbacks]
+
+[events.doctree-resolved.callbacks]
 
 [events.build-finished.callbacks]
