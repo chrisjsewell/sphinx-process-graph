@@ -7,12 +7,12 @@ The main entry point for the build process.
 """
 calls = [
     # TODO colorize output setting
-    {type="enter", context="with", text="sphinx.util.docutils.patch_docutils", is_ref=true},
-    {type="enter", context="with", text="sphinx.util.docutils.docutils_namespace", is_ref=true},
-    {text="sphinx.application.Sphinx.__init__"},
-    {text="sphinx.application.Sphinx.build"},
-    {type="exit", context="with", text="sphinx.util.docutils.patch_docutils"},
-    {type="exit", context="with", text="sphinx.util.docutils.docutils_namespace"},
+    { type = "enter", context = "with", text = "sphinx.util.docutils.patch_docutils", is_ref = true },
+    { type = "enter", context = "with", text = "sphinx.util.docutils.docutils_namespace", is_ref = true },
+    { text = "sphinx.application.Sphinx.__init__" },
+    { text = "sphinx.application.Sphinx.build" },
+    { type = "exit", context = "with", text = "sphinx.util.docutils.patch_docutils" },
+    { type = "exit", context = "with", text = "sphinx.util.docutils.docutils_namespace" },
 ]
 
 [objects."sphinx.util.docutils.patch_docutils"]
@@ -34,20 +34,20 @@ description = """
 Initializes the Sphinx application object.
 """
 calls = [
-    {text="sphinx.config.Config.read"},
-    {text="sphinx.application.Sphinx._init_i18n"},
-    {type="enter", context="for", text="builtin_extensions"},
-    {text="sphinx.application.Sphinx.setup_extension", obj_type="method", warn_no_object=false},
-    {type="exit", context="for", text="builtin_extensions"},
-    {type="enter", context="for", text="user_extensions"},
-    {text="sphinx.application.Sphinx.setup_extension", obj_type="method", warn_no_object=false},
-    {type="exit", context="for", text="user_extensions"},
-    {text="sphinx.config.Config.Config.setup"},
-    {type="emit", text="config-inited"},
-    {text="sphinx.application.Sphinx._init_env"},
-    {text="sphinx.application.Sphinx.create_builder"},
-    {text="sphinx.application.Sphinx._post_init_env"},
-    {text="sphinx.application.Sphinx._init_builder"},
+    { text = "sphinx.config.Config.read" },
+    { text = "sphinx.application.Sphinx._init_i18n" },
+    { type = "enter", context = "for", text = "builtin_extensions" },
+    { text = "sphinx.application.Sphinx.setup_extension", obj_type = "method", warn_no_object = false },
+    { type = "exit", context = "for", text = "builtin_extensions" },
+    { type = "enter", context = "for", text = "user_extensions" },
+    { text = "sphinx.application.Sphinx.setup_extension", obj_type = "method", warn_no_object = false },
+    { type = "exit", context = "for", text = "user_extensions" },
+    { text = "sphinx.config.Config.Config.setup" },
+    { type = "emit", text = "config-inited" },
+    { text = "sphinx.application.Sphinx._init_env" },
+    { text = "sphinx.application.Sphinx.create_builder" },
+    { text = "sphinx.application.Sphinx._post_init_env" },
+    { text = "sphinx.application.Sphinx._init_builder" },
 ]
 
 [objects."sphinx.application.Sphinx._init_i18n"]
@@ -72,27 +72,25 @@ Initialize the BuildEnvironment object,
 or load from cached file if available and freshenv is False.
 """
 calls = [
-    {type="enter", context="if", text="no cache"},
-    {text="sphinx.environment.BuildEnvironment.__init__"},
-    {type="exit", context="if", text="no cache"},
+    { type = "enter", context = "if", text = "no cache" },
+    { text = "sphinx.environment.BuildEnvironment.__init__" },
+    { type = "exit", context = "if", text = "no cache" },
 ]
 
 [objects."sphinx.environment.BuildEnvironment.__init__"]
 description = """
 Initializes the BuildEnvironment object.
 """
-calls = [
-    {text="sphinx.environment.BuildEnvironment.setup"},
-]
+calls = [{ text = "sphinx.environment.BuildEnvironment.setup" }]
 
 [objects."sphinx.environment.BuildEnvironment.setup"]
 description = """
 Sets up the BuildEnvironment object.
 """
 calls = [
-    {type="enter", context="for", text="domain"},
-    {text="sphinx.domains.Domain.setup"},
-    {type="exit", context="for", text="domain"},
+    { type = "enter", context = "for", text = "domain" },
+    { text = "sphinx.domains.Domain.setup" },
+    { type = "exit", context = "for", text = "domain" },
 ]
 
 [objects."sphinx.domains.Domain.setup"]
@@ -107,15 +105,15 @@ Initialise the Builder object.
 
 [objects."sphinx.application.Sphinx._post_init_env"]
 calls = [
-    {type="enter", context="if", text="freshenv"},
-    {text="sphinx.environment.BuildEnvironment.find_files", warn_no_object=false, obj_type="method"},
-    {type="exit", context="if", text="freshenv"},
+    { type = "enter", context = "if", text = "freshenv" },
+    { text = "sphinx.environment.BuildEnvironment.find_files", warn_no_object = false, obj_type = "method" },
+    { type = "exit", context = "if", text = "freshenv" },
 ]
 
 [objects."sphinx.application.Sphinx._init_builder"]
 calls = [
-    {text="sphinx.builder.Builder.init", obj_type="method"},  # TODO inits for different builders
-    {type="emit", text="builder-inited"},
+    { text = "sphinx.builder.Builder.init", obj_type = "method" }, # TODO inits for different builders
+    { type = "emit", text = "builder-inited" },
 ]
 
 [objects."sphinx.builder.Builder.init"]
@@ -130,16 +128,16 @@ description = """
 Builds the documentation.
 """
 calls = [
-    {type="enter",  context="if", text="force_all"},
-    {text="sphinx.builders.Builder.build_all"},
-    {type="exit", context="if", text="force_all"},
-    {type="enter", context="elif", text="filenames"},
-    {text="sphinx.builders.Builder.build_specific"},
-    {type="exit", context="elif", text="filenames"},
-    {type="enter", context="else", text=""},
-    {text="sphinx.builders.Builder.build_update"},
-    {type="exit", context="else", text=""},
-    {type="emit", text="build-finished"},
+    { type = "enter", context = "if", text = "force_all" },
+    { text = "sphinx.builders.Builder.build_all" },
+    { type = "exit", context = "if", text = "force_all" },
+    { type = "enter", context = "elif", text = "filenames" },
+    { text = "sphinx.builders.Builder.build_specific" },
+    { type = "exit", context = "elif", text = "filenames" },
+    { type = "enter", context = "else", text = "" },
+    { text = "sphinx.builders.Builder.build_update" },
+    { type = "exit", context = "else", text = "" },
+    { type = "emit", text = "build-finished" },
 ]
 
 [objects."sphinx.builders.Builder.build_all"]
@@ -147,8 +145,8 @@ description = """
 Build all documents.
 """
 calls = [
-    {text="sphinx.builders.Builder.compile_all_catalogs", obj_type="method"},
-    {text="sphinx.builders.Builder.build"},
+    { text = "sphinx.builders.Builder.compile_all_catalogs", obj_type = "method" },
+    { text = "sphinx.builders.Builder.build" },
 ]
 
 [objects."sphinx.builders.Builder.build_specific"]
@@ -156,8 +154,8 @@ description = """
 Build only specific documents.
 """
 calls = [
-    {text="sphinx.builders.Builder.compile_specific_catalogs", obj_type="method"},
-    {text="sphinx.builders.Builder.build"},
+    { text = "sphinx.builders.Builder.compile_specific_catalogs", obj_type = "method" },
+    { text = "sphinx.builders.Builder.build" },
 ]
 
 [objects."sphinx.builders.Builder.build_update"]
@@ -165,13 +163,13 @@ description = """
 Build only updated documents.
 """
 calls = [
-    {text="sphinx.builders.Builder.compile_update_catalogs", obj_type="method"},
-    {text="sphinx.builders.Builder.get_outdated_docs", obj_type="method"},
-    {text="sphinx.builders.Builder.build"},
+    { text = "sphinx.builders.Builder.compile_update_catalogs", obj_type = "method" },
+    { text = "sphinx.builders.Builder.get_outdated_docs", obj_type = "method" },
+    { text = "sphinx.builders.Builder.build" },
 ]
 
 [objects."sphinx.builders.Builder.get_outdated_docs"]
-overridable = true
+overridable = true # TODO abstract method
 description = """
 Determine which output documents need to be re-written.
 (only used in the write phase)
@@ -179,14 +177,14 @@ Determine which output documents need to be re-written.
 
 [objects."sphinx.builders.Builder.build"]
 calls = [
-    {text="sphinx.builders.Builder.read"},
-    {text="sphinx.environment.BuildEnvironment.check_dependents"},
-    {type="enter", context="if", text="updated_docnames"},
-    {text="cache BuildEnvironment to disk", is_ref=false},
-    {text="sphinx.environment.BuildEnvironment.check_consistency"},
-    {type="exit", context="if", text="updated_docnames"},
-    {text="sphinx.builders.Builder.write"},
-    {text="sphinx.builders.Builder.finish"},
+    { text = "sphinx.builders.Builder.read" },
+    { text = "sphinx.environment.BuildEnvironment.check_dependents" },
+    { type = "enter", context = "if", text = "updated_docnames" },
+    { text = "cache BuildEnvironment to disk", is_ref = false },
+    { text = "sphinx.environment.BuildEnvironment.check_consistency" },
+    { type = "exit", context = "if", text = "updated_docnames" },
+    { text = "sphinx.builders.Builder.write" },
+    { text = "sphinx.builders.Builder.finish" },
     # TODO finish_tasks
 ]
 
@@ -195,21 +193,21 @@ description = """
 (Re-)read all files new or changed since last update.
 """
 calls = [
-    {text="sphinx.environment.BuildEnvironment.find_files", obj_type="method"},
-    {text="sphinx.environment.BuildEnvironment.get_outdated_files"},
-    {type="emit", text="env-get-outdated"},
-    {type="enter", context="for", text="removed"},
-    {type="emit", text="env-purge-doc"},
-    {text="sphinx.environment.BuildEnvironment.clear_doc"},
-    {type="exit", context="for", text="removed"},
-    {type="emit", text="env-before-read-docs"},
-    {type="enter", context="if", text="run_parallel"},
-    {text="sphinx.builders.Builder._read_parallel"},
-    {type="exit", context="if", text="run_parallel"},
-    {type="enter", context="else", text=""},
-    {text="sphinx.builders.Builder._read_serial"},
-    {type="exit", context="else", text=""},
-    {type="emit", text="env-updated"},
+    { text = "sphinx.environment.BuildEnvironment.find_files", obj_type = "method" },
+    { text = "sphinx.environment.BuildEnvironment.get_outdated_files" },
+    { type = "emit", text = "env-get-outdated" },
+    { type = "enter", context = "for", text = "removed" },
+    { type = "emit", text = "env-purge-doc" },
+    { text = "sphinx.environment.BuildEnvironment.clear_doc" },
+    { type = "exit", context = "for", text = "removed" },
+    { type = "emit", text = "env-before-read-docs" },
+    { type = "enter", context = "if", text = "read_parallel" },
+    { text = "sphinx.builders.Builder._read_parallel" },
+    { type = "exit", context = "if", text = "read_parallel" },
+    { type = "enter", context = "else", text = "" },
+    { text = "sphinx.builders.Builder._read_serial" },
+    { type = "exit", context = "else", text = "" },
+    { type = "emit", text = "env-updated" },
 ]
 
 [objects."sphinx.environment.BuildEnvironment.find_files"]
@@ -228,32 +226,32 @@ otherwise changed are based on file modification time.
 
 [objects."sphinx.environment.BuildEnvironment.clear_doc"]
 calls = [
-    {type="enter", context="for", text="domains"},
-    {text="sphinx.domains.Domain.clear_doc", obj_type="method", warn_no_object=false},
-    {type="exit", context="for", text="domains"},
+    { type = "enter", context = "for", text = "domains" },
+    { text = "sphinx.domains.Domain.clear_doc", obj_type = "method", warn_no_object = false },
+    { type = "exit", context = "for", text = "domains" },
 ]
 
 [objects."sphinx.builders.Builder._read_serial"]
 calls = [
-    {type="enter", context="for", text="docname"},
-    {type="emit", text="env-before-read-docs"},
-    {text="sphinx.environment.BuildEnvironment.clear_doc"},
-    {text="sphinx.builders.Builder.read_doc"},
-    {type="exit", context="for", text="docname"},
+    { type = "enter", context = "for", text = "docname" },
+    { type = "emit", text = "env-before-read-docs" },
+    { text = "sphinx.environment.BuildEnvironment.clear_doc" },
+    { text = "sphinx.builders.Builder.read_doc" },
+    { type = "exit", context = "for", text = "docname" },
 ]
 
 [objects."sphinx.builders.Builder._read_parallel"]
 calls = [
-    {type="enter", context="for", text="docname"},
-    {type="emit", text="env-before-read-docs"},
-    {text="sphinx.environment.BuildEnvironment.clear_doc"},
-    {type="exit", context="for", text="docname"},
-    {type="enter", context="fork", text="docnames_chunk"},
-    {type="enter", context="for", text="docname"},
-    {text="sphinx.builders.Builder.read_doc"},
-    {type="exit", context="for", text="docname"},
-    {text="sphinx.environment.BuildEnvironment.merge_info_from"},
-    {type="exit", context="fork", text="docnames_chunk"},
+    { type = "enter", context = "for", text = "docname" },
+    { type = "emit", text = "env-before-read-docs" },
+    { text = "sphinx.environment.BuildEnvironment.clear_doc" },
+    { type = "exit", context = "for", text = "docname" },
+    { type = "enter", context = "fork", text = "docnames_chunk" },
+    { type = "enter", context = "for", text = "docname" },
+    { text = "sphinx.builders.Builder.read_doc" },
+    { type = "exit", context = "for", text = "docname" },
+    { text = "sphinx.environment.BuildEnvironment.merge_info_from" },
+    { type = "exit", context = "fork", text = "docnames_chunk" },
 ]
 
 [objects."sphinx.builders.Builder.read_doc"]
@@ -262,12 +260,12 @@ Retrieve the parser, based on source_suffix,
 and generate the initial doctree, then perform transforms.
 """
 calls = [
-    {type="enter", context="with", text="sphinx.util.docutils.sphinx_domains", is_ref=true},
-    {type="enter", context="with", text="sphinx.util.rst.default_role", is_ref=true},
-    {text="docutils.core.Publisher.publish"},
-    {type="exit", context="with", text="sphinx.util.rst.default_role"},
-    {type="exit", context="with", text="sphinx.util.docutils.sphinx_domains"},
-    {text="sphinx.builders.Builder.write_doctree"},
+    { type = "enter", context = "with", text = "sphinx.util.docutils.sphinx_domains", is_ref = true },
+    { type = "enter", context = "with", text = "sphinx.util.rst.default_role", is_ref = true },
+    { text = "docutils.core.Publisher.publish" },
+    { type = "exit", context = "with", text = "sphinx.util.rst.default_role" },
+    { type = "exit", context = "with", text = "sphinx.util.docutils.sphinx_domains" },
+    { text = "sphinx.builders.Builder.write_doctree" },
 ]
 
 [objects."sphinx.util.docutils.sphinx_domains"]
@@ -286,14 +284,12 @@ to be the one specified in the configuration.
 
 [objects."docutils.core.Publisher.publish"]
 calls = [
-    {text="sphinx.io.SphinxStandaloneReader.read"},
-    {type="apply_transforms", text="apply transfroms"},
+    { text = "sphinx.io.SphinxStandaloneReader.read" },
+    { type = "apply_transforms", text = "apply transfroms" },
 ]
 
 [objects."sphinx.io.SphinxStandaloneReader.read"]
-calls = [
-    {type="emit", text="source-read"},
-]
+calls = [{ type = "emit", text = "source-read" }]
 
 [objects."sphinx.builders.Builder.write_doctree"]
 description = """
@@ -305,32 +301,76 @@ description = """
 Merge the information from the forked process back into the main process.
 """
 calls = [
-    {type="enter", context="for", text="domain"},
-    {text="sphinx.domains.Domain.merge_domaindata", obj_type="method", warn_no_object=false},
-    {type="exit", context="for", text="domain"},
-    {type="emit", text="env-merge-info"},
+    { type = "enter", context = "for", text = "domain" },
+    { text = "sphinx.domains.Domain.merge_domaindata", obj_type = "method", warn_no_object = false },
+    { type = "exit", context = "for", text = "domain" },
+    { type = "emit", text = "env-merge-info" },
 ]
 
 [objects."sphinx.environment.BuildEnvironment.check_dependents"]
-calls = [
-    {type="emit", text="env-get-updated"},
-]
+calls = [{ type = "emit", text = "env-get-updated" }]
 
 [objects."sphinx.environment.BuildEnvironment.check_consistency"]
 calls = [
-    {text="Ensure doc root, orphan, or referenced", is_ref=false},
-    {type="enter", context="for", text="domain"},
-    {text="sphinx.domains.Domain.check_consistency", obj_type="method", warn_no_object=false},
-    {type="exit", context="for", text="domain"},
-    {type="emit", text="env-check-consistency"},
+    { text = "Ensure doc root, orphan, or referenced", is_ref = false },
+    { type = "enter", context = "for", text = "domain" },
+    { text = "sphinx.domains.Domain.check_consistency", obj_type = "method", warn_no_object = false },
+    { type = "exit", context = "for", text = "domain" },
+    { type = "emit", text = "env-check-consistency" },
 ]
 
 [objects."sphinx.builders.Builder.write"]
 overridable = true
 description = """
 Write output files.
+
+Base implementation used by builders:
+applehelp, dirhtml, dummy, epub, gettext, html,
+htmlhelp, json, linkcheck, pickle,
+pseudoxml, qthelp, text, xml
+Not:
+changes, latex, man, singlehtml, texinfo
+"""
+calls = [
+    { text = "sphinx.builders.Builder.prepare_writing" },
+    { text = "sphinx.builders.Builder.copy_assets" },
+    { type = "enter", context = "if", text = "read_parallel" },
+    { text = "sphinx.builders.Builder._write_parallel" },
+    { type = "exit", context = "if", text = "read_parallel" },
+    { type = "enter", context = "else", text = "" },
+    { text = "sphinx.builders.Builder._write_serial" },
+    { type = "exit", context = "else", text = "" },
+]
+# TODO implementations
+
+[objects."sphinx.builders.Builder.prepare_writing"]
+overridable = true # TODO abstract method
+description = """
+subclass specific preparation before writing output files.
 """
 # TODO implementations
+
+[objects."sphinx.builders.Builder.copy_assets"]
+overridable = true
+description = """
+Copy assets (images, static files, etc) before writing.
+"""
+
+[objects."sphinx.builders.Builder._write_serial"]
+calls = [
+    { type = "enter", context = "for", text = "docname" },
+    { text = "sphinx.environment.BuildEnvironment.get_and_resolve_doctree" },
+    { text = "sphinx.builders.Builder.write_doc_serialized" },
+    { text = "sphinx.builders.Builder.write_doc" },
+    { type = "exit", context = "for", text = "docname" },
+]
+
+[objects."sphinx.environment.BuildEnvironment.get_and_resolve_doctree"]
+description = """
+Retrieve the doctree from the cache, apply post-transforms,
+and resolve toctree nodes.
+"""
+calls = [{ type = "apply_post_transforms", text = "apply post-transforms" }]
 
 [objects."sphinx.builders.Builder.finish"]
 overridable = true
@@ -340,245 +380,366 @@ Finish the build process.
 # TODO implementations
 
 [transforms]
-"sphinx.transforms.ApplySourceWorkaround" = {priority = 10, doc = """
+"sphinx.transforms.ApplySourceWorkaround" = { priority = 10, doc = """
 Update source and rawsource attributes.
-"""}
-"sphinx.transforms.ExtraTranslatableNodes" = {priority = 10, doc = """
+""" }
+"sphinx.transforms.ExtraTranslatableNodes" = { priority = 10, doc = """
 Make nodes translatable.
-"""}
-"sphinx.transforms.i18n.PreserveTranslatableMessages" = {priority = 10, doc = """
+""" }
+"sphinx.transforms.i18n.PreserveTranslatableMessages" = { priority = 10, doc = """
 Preserve original translatable messages before translation
-"""}
-"sphinx.transforms.i18n.Locale" = {priority = 20, doc = """
+""" }
+"sphinx.transforms.i18n.Locale" = { priority = 20, doc = """
 Replace translatable nodes with their translated doctree.
-"""}
-"sphinx.transforms.i18n.TranslationProgressTotaliser" = {priority = 25, doc = """
+""" }
+"sphinx.transforms.i18n.TranslationProgressTotaliser" = { priority = 25, doc = """
 Calculate the number of translated and untranslated nodes.
-"""}
-"sphinx.transforms.compact_bullet_list.RefOnlyBulletListTransform" = {priority = 100, doc = """
+""" }
+"sphinx.transforms.compact_bullet_list.RefOnlyBulletListTransform" = { priority = 100, doc = """
 Change refonly bullet lists to use compact_paragraphs.
-"""}
-"sphinx.transforms.UnreferencedFootnotesDetector" = {priority = 200, doc = """
+""" }
+"sphinx.transforms.UnreferencedFootnotesDetector" = { priority = 200, doc = """
 Detect unreferenced footnotes and emit warnings.
-"""}
-"sphinx.transforms.DefaultSubstitutions" = {priority = 210, doc = """
+""" }
+"sphinx.transforms.DefaultSubstitutions" = { priority = 210, doc = """
 Replace some substitutions if they aren't defined in the document.
-"""}
-"sphinx.transforms.MoveModuleTargets" = {priority = 210, doc = """
+""" }
+"sphinx.transforms.MoveModuleTargets" = { priority = 210, doc = """
 Move Python module targets that are the first thing in a section
 to the section title.
-"""}
-"sphinx.transforms.HandleCodeBlocks" = {priority = 210, doc = """
+""" }
+"sphinx.transforms.HandleCodeBlocks" = { priority = 210, doc = """
 Several code block related transformations.
-"""}
-"sphinx.transforms.AutoNumbering" = {priority = 210, doc = """
+""" }
+"sphinx.transforms.AutoNumbering" = { priority = 210, doc = """
 Register IDs of tables, figures and literal_blocks to assign numbers.
-"""}
-"sphinx.transforms.AutoIndexUpgrader" = {priority = 210, doc = """
+""" }
+"sphinx.transforms.AutoIndexUpgrader" = { priority = 210, doc = """
 Detect old style (4 column based indices)
 and automatically upgrade to new style.
-"""}
-"docutils.transforms.references.Substitutions" = {priority = 220, doc = """
+""" }
+"docutils.transforms.references.Substitutions" = { priority = 220, doc = """
 Replace substitution references with their definitions.
-"""}
-"sphinx.transforms.ReorderConsecutiveTargetAndIndexNodes" = {priority = 220, doc = """
+""" }
+"sphinx.transforms.ReorderConsecutiveTargetAndIndexNodes" = { priority = 220, doc = """
 Ensure target nodes come after index nodes,
 so that PropagateTargets transformation can combine them.
-"""}
-"docutils.transforms.references.PropagateTargets" = {priority = 260, doc = """
+""" }
+"docutils.transforms.references.PropagateTargets" = { priority = 260, doc = """
 Propagate empty internal targets to the next element.
-"""}
-"sphinx.transforms.SortIds" = {priority = 261, doc = """
+""" }
+"sphinx.transforms.SortIds" = { priority = 261, doc = """
 Sort section IDs so that the "id[0-9]+" one comes last.
-"""}
-"docutils.transforms.frontmatter.DocTitle" = {priority = 320, hide=true, doc = """
+""" }
+"docutils.transforms.frontmatter.DocTitle" = { priority = 320, hide = true, doc = """
 If doctitle_xform is enabled (default False),
 promote initial section titles to document title.
-"""}
-"docutils.transforms.frontmatter.DocInfo" = {priority = 340, doc = """
+""" }
+"docutils.transforms.frontmatter.DocInfo" = { priority = 340, doc = """
 If the document contains a field list as the first element,
 registered bibliographic field names are transformed
 to the corresponding DTD elements.
-"""}
-"docutils.transforms.frontmatter.SectionSubTitle" = {priority = 350, hide=true, doc = """
+""" }
+"docutils.transforms.frontmatter.SectionSubTitle" = { priority = 350, hide = true, doc = """
 If sectsubtitle_xform is enabled (default False),
 promote initial sub-section to subtitle.
-"""}
-"docutils.transforms.references.AnonymousHyperlinks" = {priority = 440, doc = """
+""" }
+"docutils.transforms.references.AnonymousHyperlinks" = { priority = 440, doc = """
 Propogate refuri/refid from targets to anonymous references.
-"""}
-"docutils.transforms.references.IndirectHyperlinks" = {priority = 460, doc = """
+""" }
+"docutils.transforms.references.IndirectHyperlinks" = { priority = 460, doc = """
 Flatten indirect references of targets/references
 to one-hop indirect references.
-"""}
-"sphinx.transforms.DoctestTransform" = {priority = 500, doc = """
+""" }
+"sphinx.transforms.DoctestTransform" = { priority = 500, doc = """
 Set "doctest" style to each doctest_block node
-"""}
-"sphinx.transforms.GlossarySorter" = {priority = 500, doc = """
+""" }
+"sphinx.transforms.GlossarySorter" = { priority = 500, doc = """
 Sort glossaries that have the sorted flag.
-"""}
-"sphinx.domains.citation.CitationDefinitionTransform" = {priority = 619, doc = """
+""" }
+"sphinx.domains.citation.CitationDefinitionTransform" = { priority = 619, doc = """
 Mark citation definition labels as not smartquoted.
-"""}
-"sphinx.domains.citation.CitationReferenceTransform" = {priority = 619, doc = """
+""" }
+"sphinx.domains.citation.CitationReferenceTransform" = { priority = 619, doc = """
 Replace citation references by pending_xref nodes before the default
 docutils transform tries to resolve them.
-"""}
-"docutils.transforms.references.Footnotes" = {priority = 620, doc = """
+""" }
+"docutils.transforms.references.Footnotes" = { priority = 620, doc = """
 Assign numbers to autonumbered footnotes,
 and resolve links to footnotes, citations, and their references.
-"""}
-"docutils.transforms.references.ExternalTargets" = {priority = 640, doc = """
+""" }
+"docutils.transforms.references.ExternalTargets" = { priority = 640, doc = """
 Replace "refname" attribute of rererence nodes by "refuri"
-"""}
-"docutils.transforms.references.InternalTargets" = {priority = 660, doc = """
+""" }
+"docutils.transforms.references.InternalTargets" = { priority = 660, doc = """
 Replace "refname" attribute of rererence nodes by "refid"
-"""}
-"sphinx.builders.latex.transforms.FootnoteDocnameUpdater" = {priority = 700, doc = """
+""" }
+"sphinx.builders.latex.transforms.FootnoteDocnameUpdater" = { priority = 700, doc = """
 Add docname to footnote and footnote_reference nodes.
-"""}
-"docutils.transforms.universal.StripComments" = {priority = 740, hide=true, doc = """
+""" }
+"docutils.transforms.universal.StripComments" = { priority = 740, hide = true, doc = """
 Remove comment elements from the document tree
 (only if the strip_comments setting is enabled).
-"""}
-"sphinx.transforms.SphinxSmartQuotes" = {priority = 750, doc = """
+""" }
+"sphinx.transforms.SphinxSmartQuotes" = { priority = 750, doc = """
 Replace ASCII quotation marks with typographic form.
 Also replace multiple dashes with em-dash/en-dash characters.
 (only if the smartquotes setting is enabled).
-"""}
-"docutils.transforms.universal.Decorations" = {priority = 820, doc = """
+""" }
+"docutils.transforms.universal.Decorations" = { priority = 820, doc = """
 Populate a document's decoration element (header, footer).
-"""}
-"docutils.transforms.misc.Transitions" = {priority = 830, doc = """
+""" }
+"docutils.transforms.misc.Transitions" = { priority = 830, doc = """
 Move transitions at the end of sections up the tree.
-"""}
-"docutils.transforms.universal.ExposeInternals" = {priority = 840, hide=true, doc = """
+""" }
+"docutils.transforms.universal.ExposeInternals" = { priority = 840, hide = true, doc = """
 Expose internal attributes if ``expose_internals`` setting is set.
-"""}
-"sphinx.transforms.references.SphinxDanglingReferences" = {priority = 850, doc = """
+""" }
+"sphinx.transforms.references.SphinxDanglingReferences" = { priority = 850, doc = """
 DanglingReferences transform which does not output info messages.
-"""}
-"sphinx.transforms.references.SphinxDomains" = {priority = 850, doc = """
+""" }
+"sphinx.transforms.references.SphinxDomains" = { priority = 850, doc = """
 Collect objects to Sphinx domains for cross references.
-"""}
-"sphinx.transforms.DoctreeReadEvent" = {priority = 880, emit="doctree-read", doc = """
+""" }
+"sphinx.transforms.DoctreeReadEvent" = { priority = 880, emit = "doctree-read", doc = """
 Emit doctree-read event.
-"""}
-"sphinx.versioning.UIDTransform" = {priority = 880, hide=true, doc = """
+""" }
+"sphinx.versioning.UIDTransform" = { priority = 880, hide = true, doc = """
 Add UIDs to doctree for versioning.
 (only used in gettext builder and gettext_uuid=True)
-"""}
-"sphinx.transforms.i18n.AddTranslationClasses" = {priority = 950, doc = """
+""" }
+"sphinx.transforms.i18n.AddTranslationClasses" = { priority = 950, doc = """
 Add ``translated`` or ``untranslated`` classes to indicate translation status.
-"""}
-"sphinx.transforms.FilterSystemMessages" = {priority = 999, doc = """
+""" }
+"sphinx.transforms.FilterSystemMessages" = { priority = 999, doc = """
 Filter system messages from a doctree.
-"""}
-"sphinx.transforms.i18n.RemoveTranslatableInline" = {priority = 999, doc = """
+""" }
+"sphinx.transforms.i18n.RemoveTranslatableInline" = { priority = 999, doc = """
 Remove inline nodes used for translation as placeholders.
-"""}
+""" }
+
+[post_transforms]
+"sphinx.builders.latex.transforms.CitationReferenceTransform" = { priority = 5, builders = [
+], formats = [
+    'latex',
+], doc = """
+Replace pending_xref nodes for citation by citation_reference.
+""" }
+"sphinx.builders.latex.transforms.MathReferenceTransform" = { priority = 5, builders = [
+], formats = [
+    'latex',
+], doc = """
+Replace pending_xref nodes for math by math_reference.
+""" }
+"sphinx.domains.c.AliasTransform" = { priority = 9, builders = [
+], formats = [
+], doc = """
+Replace AliasNode
+""" }
+"sphinx.domains.cpp.AliasTransform" = { priority = 9, builders = [
+], formats = [
+], doc = """
+Replace AliasNode
+""" }
+"sphinx.transforms.post_transforms.ReferencesResolver" = { priority = 10, builders = [
+], formats = [
+], doc = """
+Resolves cross-references on doctrees.
+""" }
+"sphinx.transforms.post_transforms.OnlyNodeTransform" = { priority = 50, builders = [
+], formats = [
+], doc = """
+Filter ``only`` nodes which do not match *tags*.
+""" }
+"sphinx.transforms.post_transforms.images.ImageDownloader" = { priority = 100, builders = [
+], formats = [
+], doc = """
+Replace remote image URIs with local paths,
+and download them to the build directory.
+""" }
+"sphinx.transforms.post_transforms.images.DataURIExtractor" = { priority = 150, builders = [
+], formats = [
+], doc = """
+Replace data image URIs with local paths,
+and extract the data to the build directory.
+""" }
+"sphinx.transforms.post_transforms.SigElementFallbackTransform" = { priority = 200, builders = [
+], formats = [
+], doc = """
+Fallback various desc_* nodes to inline if translator does not support them.
+""" }
+"sphinx.transforms.post_transforms.PropagateDescDomain" = { priority = 200, builders = [
+], formats = [
+], doc = """
+Add the domain name of the parent node as a class in each desc_signature node.
+""" }
+"sphinx.builders.latex.transforms.SubstitutionDefinitionsRemover" = { priority = 221, builders = [
+], formats = [
+    'latex',
+], doc = """
+Remove ``substitution_definition`` nodes from doctrees.
+""" }
+"sphinx.builders.html.transforms.KeyboardTransform" = { priority = 400, builders = [
+], formats = [
+    'html',
+], doc = """
+Transform :kbd: role to more detailed form.
+""" }
+"sphinx.builders.latex.transforms.IndexInSectionTitleTransform" = { priority = 400, builders = [
+], formats = [
+    'latex',
+], doc = """
+Move index nodes in section title to outside of the title.
+""" }
+"sphinx.builders.latex.transforms.DocumentTargetTransform" = { priority = 400, builders = [
+], formats = [
+    'latex',
+], doc = """
+Add :doc label to the first section of each document.
+""" }
+"sphinx.builders.latex.transforms.LiteralBlockTransform" = { priority = 400, builders = [
+], formats = [
+    'latex',
+], doc = """
+Replace container nodes for literal_block by captioned_literal_block.
+""" }
+"sphinx.builders.latex.transforms.ShowUrlsTransform" = { priority = 400, builders = [
+], formats = [
+    'latex',
+], doc = """
+Expand references to inline text or footnotes.
+""" }
+"sphinx.transforms.post_transforms.code.HighlightLanguageTransform" = { priority = 400, builders = [
+], formats = [
+], doc = """
+Apply highlight_language to all literal_block nodes.
+""" }
+"sphinx.transforms.post_transforms.code.TrimDoctestFlagsTransform" = { priority = 401, builders = [
+], formats = [
+], doc = """
+Trim doctest flags like ``# doctest: +FLAG``
+from python code-blocks, if trim_doctest_flags=True.
+""" }
+"sphinx.builders.latex.transforms.LaTeXFootnoteTransform" = { priority = 600, builders = [
+], formats = [
+    'latex',
+], doc = """
+Convert footnote definitions and references to appropriate form to LaTeX.
+""" }
+"sphinx.builders.latex.transforms.BibliographyTransform" = { priority = 750, builders = [
+], formats = [
+    'latex',
+], doc = """
+Gather bibliography entries to tail of document.
+""" }
+"sphinx.builders.linkcheck.HyperlinkCollector" = { priority = 800, builders = [
+    'linkcheck',
+], formats = [
+], doc = """
+Assess the validity of hyperlinks.
+""" }
 
 [events.config-inited.callbacks]
-"sphinx.builders.epub3.convert_epub_css_files" = {priority = 800, doc = """
+"sphinx.builders.epub3.convert_epub_css_files" = { priority = 800, doc = """
 Convert string styled epub_css_files to tuple style.
-"""}
-"sphinx.builders.html.convert_html_css_files" = {priority = 800, doc = """
+""" }
+"sphinx.builders.html.convert_html_css_files" = { priority = 800, doc = """
 Convert string styled html_css_files to tuple style.
-"""}
-"sphinx.builders.html.convert_html_js_files" = {priority = 800, doc = """
+""" }
+"sphinx.builders.html.convert_html_js_files" = { priority = 800, doc = """
 Convert string styled html_js_files to tuple style.
-"""}
-"sphinx.builders.html.validate_html_extra_path" = {priority = 800, doc = """
+""" }
+"sphinx.builders.html.validate_html_extra_path" = { priority = 800, doc = """
 Check html_extra_paths setting.
-"""}
-"sphinx.builders.html.validate_html_static_path" = {priority = 800, doc = """
+""" }
+"sphinx.builders.html.validate_html_static_path" = { priority = 800, doc = """
 Check html_static_paths setting.
-"""}
-"sphinx.builders.html.validate_html_logo" = {priority = 800, doc = """
+""" }
+"sphinx.builders.html.validate_html_logo" = { priority = 800, doc = """
 Check html_logo setting.
-"""}
-"sphinx.builders.html.validate_html_favicon" = {priority = 800, doc = """
+""" }
+"sphinx.builders.html.validate_html_favicon" = { priority = 800, doc = """
 Check html_favicon setting.
-"""}
-"sphinx.builders.html.error_on_html_4" = {priority = 800, doc = """
+""" }
+"sphinx.builders.html.error_on_html_4" = { priority = 800, doc = """
 Check HTML 4 builder is no longer being used.
-"""}
-"sphinx.builders.gettext._gettext_compact_validator" = {priority = 800, doc = """
+""" }
+"sphinx.builders.gettext._gettext_compact_validator" = { priority = 800, doc = """
 Convert gettext_compact integer to boolean.
-"""}
-"sphinx.builders.latex.validate_config_values" = {priority = 800, doc = """
+""" }
+"sphinx.builders.latex.validate_config_values" = { priority = 800, doc = """
 Remove unknown latex_elements keys.
-"""}
-"sphinx.builders.latex.validate_latex_theme_options" = {priority = 800, doc = """
+""" }
+"sphinx.builders.latex.validate_latex_theme_options" = { priority = 800, doc = """
 Remove unknown latex_theme_options keys.
-"""}
-"sphinx.builders.linkcheck.compile_linkcheck_allowed_redirects" = {priority = 800, doc = """
+""" }
+"sphinx.builders.linkcheck.compile_linkcheck_allowed_redirects" = { priority = 800, doc = """
 Compile patterns in linkcheck_allowed_redirects
 to the regexp objects.
-"""}
-"sphinx.config.convert_source_suffix" = {priority = 800, doc = """
+""" }
+"sphinx.config.convert_source_suffix" = { priority = 800, doc = """
 Convert old styled source_suffix to new style.
-"""}
-"sphinx.config.convert_highlight_options" = {priority = 800, doc = """
+""" }
+"sphinx.config.convert_highlight_options" = { priority = 800, doc = """
 Convert old styled highlight_options to new style.
-"""}
-"sphinx.config.init_numfig_format" = {priority = 800, doc = """
+""" }
+"sphinx.config.init_numfig_format" = { priority = 800, doc = """
 Initialize numfig_format defaults.
-"""}
-"sphinx.config.correct_copyright_year" = {priority = 800, doc = """
+""" }
+"sphinx.config.correct_copyright_year" = { priority = 800, doc = """
 Synchronize copyright year with
 SOURCE_DATE_EPOCH environment variable (if set).
-"""}
-"sphinx.config.check_confval_types" = {priority = 800, doc = """
+""" }
+"sphinx.config.check_confval_types" = { priority = 800, doc = """
 Check all values against the expected types.
-"""}
-"sphinx.config.check_primary_domain" = {priority = 800, doc = """
+""" }
+"sphinx.config.check_primary_domain" = { priority = 800, doc = """
 Check set primary_domain is available.
-"""}
-"sphinx.extension.verify_needs_extensions" = {priority = 800, doc = """
+""" }
+"sphinx.extension.verify_needs_extensions" = { priority = 800, doc = """
 Check that extensions mentioned in needs_extensions
 satisfy the version requirement.
-"""}
-"sphinx.registry.merge_source_suffix" = {priority = 800, doc = """
+""" }
+"sphinx.registry.merge_source_suffix" = { priority = 800, doc = """
 Merge any user-specified source_suffix
 with any added by extensions.
-"""}
+""" }
 
 [events.builder-inited.callbacks]
-"sphinx.builders.epub3.validate_config_values" = {priority=500, doc = """
+"sphinx.builders.epub3.validate_config_values" = { priority = 500, doc = """
 If epub3 builder is enabled,
 check required config values are set.
-"""}
-"sphinx.builders.html.validate_math_renderer" = {priority=500, doc = """
+""" }
+"sphinx.builders.html.validate_math_renderer" = { priority = 500, doc = """
 Check math_renderer_name is valid.
-"""}
-"sphinx.builders.latex.install_packages_for_ja" = {priority=500, doc = """
+""" }
+"sphinx.builders.latex.install_packages_for_ja" = { priority = 500, doc = """
 Add packages for Japanese if necessary.
-"""}
-"sphinx.domains.cpp.setup.initStuff" = {priority=500, doc = """
+""" }
+"sphinx.domains.cpp.setup.initStuff" = { priority = 500, doc = """
 Some initializations for the C++ domain.
-"""}
+""" }
 
 [events.env-get-outdated.callbacks]
-"sphinx.config.check_root_doc" = {priority = 500, doc = """
+"sphinx.config.check_root_doc" = { priority = 500, doc = """
 Adjust root_doc to 'contents' to support an old project
 which does not have any root_doc setting.
-"""}
+""" }
 # all below use default inherited from EnvironmentCollector -> returns []
-"sphinx.environment.collectors.dependencies.DependenciesCollector.get_outdated_docs" = {priority = 500, hide=true}
-"sphinx.environment.collectors.asset.ImageCollector.get_outdated_docs" = {priority = 500, hide=true}
-"sphinx.environment.collectors.asset.DownloadFileCollector.get_outdated_docs" = {priority = 500, hide=true}
-"sphinx.environment.collectors.metadata.MetadataCollector.get_outdated_docs" = {priority = 500, hide=true}
-"sphinx.environment.collectors.title.TitleCollector.get_outdated_docs" = {priority = 500, hide=true}
-"sphinx.environment.collectors.toctree.TocTreeCollector.get_outdated_docs" = {priority = 500, hide=true}
+"sphinx.environment.collectors.dependencies.DependenciesCollector.get_outdated_docs" = { priority = 500, hide = true }
+"sphinx.environment.collectors.asset.ImageCollector.get_outdated_docs" = { priority = 500, hide = true }
+"sphinx.environment.collectors.asset.DownloadFileCollector.get_outdated_docs" = { priority = 500, hide = true }
+"sphinx.environment.collectors.metadata.MetadataCollector.get_outdated_docs" = { priority = 500, hide = true }
+"sphinx.environment.collectors.title.TitleCollector.get_outdated_docs" = { priority = 500, hide = true }
+"sphinx.environment.collectors.toctree.TocTreeCollector.get_outdated_docs" = { priority = 500, hide = true }
 
 [events.env-purge-doc.callbacks]
-"sphinx.environment.collectors.dependencies.DependenciesCollector.clear_doc" = {priority = 500}
-"sphinx.environment.collectors.asset.ImageCollector.clear_doc" = {priority = 500}
-"sphinx.environment.collectors.asset.DownloadFileCollector.clear_doc" = {priority = 500}
-"sphinx.environment.collectors.metadata.MetadataCollector.clear_doc" = {priority = 500}
-"sphinx.environment.collectors.title.TitleCollector.clear_doc" = {priority = 500}
-"sphinx.environment.collectors.toctree.TocTreeCollector.clear_doc" = {priority = 500}
+"sphinx.environment.collectors.dependencies.DependenciesCollector.clear_doc" = { priority = 500 }
+"sphinx.environment.collectors.asset.ImageCollector.clear_doc" = { priority = 500 }
+"sphinx.environment.collectors.asset.DownloadFileCollector.clear_doc" = { priority = 500 }
+"sphinx.environment.collectors.metadata.MetadataCollector.clear_doc" = { priority = 500 }
+"sphinx.environment.collectors.title.TitleCollector.clear_doc" = { priority = 500 }
+"sphinx.environment.collectors.toctree.TocTreeCollector.clear_doc" = { priority = 500 }
 
 [events.env-before-read-docs.callbacks]
 
@@ -587,46 +748,46 @@ which does not have any root_doc setting.
 [events.source-read.callbacks]
 
 [events.doctree-read.callbacks]
-"sphinx.environment.collectors.dependencies.DependenciesCollector.process_doc" = {priority = 500, doc = """
+"sphinx.environment.collectors.dependencies.DependenciesCollector.process_doc" = { priority = 500, doc = """
 Process docutils-generated dependency info.
-"""}
-"sphinx.environment.collectors.asset.ImageCollector.process_doc" = {priority = 500, doc = """
+""" }
+"sphinx.environment.collectors.asset.ImageCollector.process_doc" = { priority = 500, doc = """
 Process and rewrite image URIs.
-"""}
-"sphinx.environment.collectors.asset.DownloadFileCollector.process_doc" = {priority = 500, doc = """
+""" }
+"sphinx.environment.collectors.asset.DownloadFileCollector.process_doc" = { priority = 500, doc = """
 Process downloadable file paths.
-"""}
-"sphinx.environment.collectors.metadata.MetadataCollector.process_doc" = {priority = 500, doc = """
+""" }
+"sphinx.environment.collectors.metadata.MetadataCollector.process_doc" = { priority = 500, doc = """
 Process the docinfo part of the doctree as metadata.
-"""}
-"sphinx.environment.collectors.title.TitleCollector.process_doc" = {priority = 500, doc = """
+""" }
+"sphinx.environment.collectors.title.TitleCollector.process_doc" = { priority = 500, doc = """
 Add a title node to the document (just copy the first section title),
 and store that title in the environment.
-"""}
-"sphinx.environment.collectors.toctree.TocTreeCollector.process_doc" = {priority = 500, doc = """
+""" }
+"sphinx.environment.collectors.toctree.TocTreeCollector.process_doc" = { priority = 500, doc = """
 Build a TOC from the doctree and store it in the inventory.
-"""}
+""" }
 
 [events.env-get-updated.callbacks]
-"sphinx.environment.collectors.dependencies.DependenciesCollector.get_updated_docs" = {priority = 500, hide=true}
-"sphinx.environment.collectors.asset.ImageCollector.get_updated_docs" = {priority = 500, hide=true}
-"sphinx.environment.collectors.asset.DownloadFileCollector.get_updated_docs" = {priority = 500, hide=true}
-"sphinx.environment.collectors.metadata.MetadataCollector.get_updated_docs" = {priority = 500, hide=true}
-"sphinx.environment.collectors.title.TitleCollector.get_updated_docs" = {priority = 500, hide=true}
-"sphinx.environment.collectors.toctree.TocTreeCollector.get_updated_docs" = {priority = 500, doc = """
+"sphinx.environment.collectors.dependencies.DependenciesCollector.get_updated_docs" = { priority = 500, hide = true }
+"sphinx.environment.collectors.asset.ImageCollector.get_updated_docs" = { priority = 500, hide = true }
+"sphinx.environment.collectors.asset.DownloadFileCollector.get_updated_docs" = { priority = 500, hide = true }
+"sphinx.environment.collectors.metadata.MetadataCollector.get_updated_docs" = { priority = 500, hide = true }
+"sphinx.environment.collectors.title.TitleCollector.get_updated_docs" = { priority = 500, hide = true }
+"sphinx.environment.collectors.toctree.TocTreeCollector.get_updated_docs" = { priority = 500, doc = """
 For numbered toctrees, assign section numbers to each heading,
 and figure numbers to each figure.
 Return docnames whose section numbers changed.
-"""}
+""" }
 
 [events.env-check-consistency.callbacks]
 
 [events.env-merge-info.callbacks]
-"sphinx.environment.collectors.dependencies.DependenciesCollector.merge_other" = {priority = 500}
-"sphinx.environment.collectors.asset.ImageCollector.merge_other" = {priority = 500}
-"sphinx.environment.collectors.asset.DownloadFileCollector.merge_other" = {priority = 500}
-"sphinx.environment.collectors.metadata.MetadataCollector.merge_other" = {priority = 500}
-"sphinx.environment.collectors.title.TitleCollector.merge_other" = {priority = 500}
-"sphinx.environment.collectors.toctree.TocTreeCollector.merge_other" = {priority = 500}
+"sphinx.environment.collectors.dependencies.DependenciesCollector.merge_other" = { priority = 500 }
+"sphinx.environment.collectors.asset.ImageCollector.merge_other" = { priority = 500 }
+"sphinx.environment.collectors.asset.DownloadFileCollector.merge_other" = { priority = 500 }
+"sphinx.environment.collectors.metadata.MetadataCollector.merge_other" = { priority = 500 }
+"sphinx.environment.collectors.title.TitleCollector.merge_other" = { priority = 500 }
+"sphinx.environment.collectors.toctree.TocTreeCollector.merge_other" = { priority = 500 }
 
 [events.build-finished.callbacks]

@@ -21,6 +21,7 @@ class Data(BaseModel):
     """The objects in the graph, keyed by their fully qualified name."""
     events: dict[str, "Event"]
     transforms: dict[str, "Transform"]
+    post_transforms: dict[str, "PostTransform"]
 
 
 class Object(BaseModel):
@@ -59,7 +60,22 @@ class EventCallback(BaseModel):
 class Transform(BaseModel):
     """A transform for a sphinx event."""
 
+    model_config = ConfigDict(extra="forbid")
+
     priority: int
+    hide: bool = False
+    doc: str = ""
+    emit: str | None = None
+
+
+class PostTransform(BaseModel):
+    """A transform for a sphinx event."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    priority: int
+    formats: list[str] = Field(default_factory=list)
+    builders: list[str] = Field(default_factory=list)
     hide: bool = False
     doc: str = ""
     emit: str | None = None
@@ -77,6 +93,7 @@ class Call(BaseModel):
         "exit",
         "emit",
         "apply_transforms",
+        "apply_post_transforms",
     ] = "standard"
     """The type of call."""
 
@@ -154,6 +171,8 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
                     cell_kwargs["bgcolor"] = "lightblue"
                 if call.type == "apply_transforms":
                     cell_kwargs["bgcolor"] = "lightyellow"
+                if call.type == "apply_post_transforms":
+                    cell_kwargs["bgcolor"] = "lightyellow"
 
                 text = indent_str + text
 
@@ -199,6 +218,12 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
                         graph.edge(
                             path + ":" + str(port_num),
                             "_apply_transforms",
+                            style="dashed",
+                        )
+                    case "apply_post_transforms":
+                        graph.edge(
+                            path + ":" + str(port_num),
+                            "_apply_post_transforms",
                             style="dashed",
                         )
                     case _:
@@ -249,6 +274,23 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
             name, label=html.html(str(table)), shape="box", style="rounded", margin=".2"
         )
 
+    add_transforms_node(data, graph)
+    add_post_transforms_node(data, graph)
+
+    return graph
+
+
+def path2name(path: str, type: Literal["function", "method", None] = None) -> str:
+    """Split a path into the module and object names."""
+    parts = path.split(".")
+    if type == "method" and len(parts) > 1:
+        return f"{parts[-2]}.{parts[-1]}()"
+    elif type in ("function", "method"):
+        return parts[-1] + "()"
+    return path
+
+
+def add_transforms_node(data: Data, graph: Digraph):
     table = html.Table(border=0, cellspacing=0)
     table.add_row(
         [
@@ -295,14 +337,55 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
         margin=".2",
     )
 
-    return graph
 
-
-def path2name(path: str, type: Literal["function", "method", None] = None) -> str:
-    """Split a path into the module and object names."""
-    parts = path.split(".")
-    if type == "method" and len(parts) > 1:
-        return f"{parts[-2]}.{parts[-1]}()"
-    elif type in ("function", "method"):
-        return parts[-1] + "()"
-    return path
+def add_post_transforms_node(data: Data, graph: Digraph):
+    table = html.Table(border=0, cellspacing=0)
+    table.add_row(
+        [
+            html.TableCell(
+                html.u("Post Transforms"),
+                align="CENTER",
+                colspan=4,
+                bgcolor="lightyellow",
+            )
+        ]
+    )
+    for tr_name, tr_data in data.post_transforms.items():
+        if tr_data.hide:
+            continue
+        table.add_row(
+            [
+                html.TableCell(
+                    tr_name[len("sphinx.") :]
+                    if tr_name.startswith("sphinx.")
+                    else tr_name,
+                    align="LEFT",
+                    border=1,
+                    cellpadding=3,
+                ),
+                html.TableCell(str(tr_data.priority), align="CENTER", border=1),
+                html.TableCell(",".join(tr_data.builders), align="LEFT", border=1),
+                html.TableCell(
+                    ",".join(tr_data.formats), align="LEFT", border=1, port=tr_name
+                ),
+            ]
+        )
+        if tr_data.emit:
+            graph.edge("_apply_post_transforms:" + tr_name, tr_data.emit)
+        if tr_data.doc:
+            table.add_row(
+                [
+                    html.TableCell(
+                        tr_data.doc.replace("\n", html.br("LEFT")),
+                        align="LEFT",
+                        colspan=4,
+                    )
+                ]
+            )
+    graph.node(
+        "_apply_post_transforms",
+        label=html.html(str(table)),
+        shape="box",
+        style="rounded",
+        margin=".2",
+    )
