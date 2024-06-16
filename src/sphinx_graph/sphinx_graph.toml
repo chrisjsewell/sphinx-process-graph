@@ -7,12 +7,12 @@ The main entry point for the build process.
 """
 calls = [
     # TODO colorize output setting
-    {type="enter", context="with", name="sphinx.util.docutils.patch_docutils"},
-    {type="enter", context="with", name="sphinx.util.docutils.docutils_namespace"},
-    {name="sphinx.application.Sphinx.__init__"},
-    {name="sphinx.application.Sphinx.build"},
-    {type="exit", context="with", name="sphinx.util.docutils.patch_docutils"},
-    {type="exit", context="with", name="sphinx.util.docutils.docutils_namespace"},
+    {type="enter", context="with", text="sphinx.util.docutils.patch_docutils", is_ref=true},
+    {type="enter", context="with", text="sphinx.util.docutils.docutils_namespace", is_ref=true},
+    {text="sphinx.application.Sphinx.__init__"},
+    {text="sphinx.application.Sphinx.build"},
+    {type="exit", context="with", text="sphinx.util.docutils.patch_docutils"},
+    {type="exit", context="with", text="sphinx.util.docutils.docutils_namespace"},
 ]
 
 [objects."sphinx.util.docutils.patch_docutils"]
@@ -30,244 +30,222 @@ once the build process is complete.
 """
 
 [objects."sphinx.application.Sphinx.__init__"]
-type = "method"
 description = """
 Initializes the Sphinx application object.
 """
 calls = [
-    {name="sphinx.config.Config.read"},
-    {name="sphinx.application.Sphinx._init_i18n"},
-    {type="enter", context="for", name="builtin_extensions"},
-    {name="sphinx.application.Sphinx.setup_extension", obj_type="method", warn_no_object=false},
-    {type="exit", context="for", name="builtin_extensions"},
-    {type="enter", context="for", name="user_extensions"},
-    {name="sphinx.application.Sphinx.setup_extension", obj_type="method", warn_no_object=false},
-    {type="exit", context="for", name="user_extensions"},
-    {name="sphinx.config.Config.Config.setup"},
-    {type="emit", name="config-inited"},
-    {name="sphinx.application.Sphinx._init_env"},
-    {name="sphinx.application.Sphinx.create_builder"},
-    {name="sphinx.application.Sphinx._post_init_env"},
-    {name="sphinx.application.Sphinx._init_builder"},
+    {text="sphinx.config.Config.read"},
+    {text="sphinx.application.Sphinx._init_i18n"},
+    {type="enter", context="for", text="builtin_extensions"},
+    {text="sphinx.application.Sphinx.setup_extension", obj_type="method", warn_no_object=false},
+    {type="exit", context="for", text="builtin_extensions"},
+    {type="enter", context="for", text="user_extensions"},
+    {text="sphinx.application.Sphinx.setup_extension", obj_type="method", warn_no_object=false},
+    {type="exit", context="for", text="user_extensions"},
+    {text="sphinx.config.Config.Config.setup"},
+    {type="emit", text="config-inited"},
+    {text="sphinx.application.Sphinx._init_env"},
+    {text="sphinx.application.Sphinx.create_builder"},
+    {text="sphinx.application.Sphinx._post_init_env"},
+    {text="sphinx.application.Sphinx._init_builder"},
 ]
 
 [objects."sphinx.application.Sphinx._init_i18n"]
-type = "method"
 description = """
 Load translated strings from the configured localedirs
 if enabled in the configuration.
 """
 
 [objects."sphinx.config.Config.read"]
-type = "method"
 description = """
 Reads the configuration from the configuration file.
 """
 
 [objects."sphinx.config.Config.Config.setup"]
-type = "method"
 description = """
 Call the setup() method if it exists in the conf.py file.
 """
 
 [objects."sphinx.application.Sphinx._init_env"]
-type = "method"
 description = """
 Initialize the BuildEnvironment object,
 or load from cached file if available and freshenv is False.
 """
 calls = [
-    {type="enter", context="if", name="no cache", warn_no_object=false},
-    {name="sphinx.environment.BuildEnvironment.__init__"},
-    {type="exit", context="if", name="no cache"},
+    {type="enter", context="if", text="no cache"},
+    {text="sphinx.environment.BuildEnvironment.__init__"},
+    {type="exit", context="if", text="no cache"},
 ]
 
 [objects."sphinx.environment.BuildEnvironment.__init__"]
-type = "method"
 description = """
 Initializes the BuildEnvironment object.
 """
 calls = [
-    {name="sphinx.environment.BuildEnvironment.setup"},
+    {text="sphinx.environment.BuildEnvironment.setup"},
 ]
 
 [objects."sphinx.environment.BuildEnvironment.setup"]
-type = "method"
 description = """
 Sets up the BuildEnvironment object.
 """
 calls = [
-    {type="enter", context="for", name="domain", warn_no_object=false},
-    {name="sphinx.domains.Domain.setup"},
-    {type="exit", context="for", name="domain"},
+    {type="enter", context="for", text="domain"},
+    {text="sphinx.domains.Domain.setup"},
+    {type="exit", context="for", text="domain"},
 ]
 
 [objects."sphinx.domains.Domain.setup"]
-type = "method"
 description = """
 Sets up the domain object.
 """
 
 [objects."sphinx.application.Sphinx.create_builder"]
-type = "method"
 description = """
 Initialise the Builder object.
 """
 
 [objects."sphinx.application.Sphinx._post_init_env"]
-type = "method"
 calls = [
-    {type="enter",  context="if", name="freshenv", warn_no_object=false},
-    {name="sphinx.environment.BuildEnvironment.find_files", warn_no_object=false, obj_type="method"},
-    {type="exit", context="if", name="freshenv"},
+    {type="enter", context="if", text="freshenv"},
+    {text="sphinx.environment.BuildEnvironment.find_files", warn_no_object=false, obj_type="method"},
+    {type="exit", context="if", text="freshenv"},
 ]
 
 [objects."sphinx.application.Sphinx._init_builder"]
-type = "method"
 calls = [
-    {name="sphinx.builder.Builder.init", obj_type="method"},  # TODO inits for different builders
-    {type="emit", name="builder-inited"},
+    {text="sphinx.builder.Builder.init", obj_type="method"},  # TODO inits for different builders
+    {type="emit", text="builder-inited"},
 ]
 
 
 [objects."sphinx.application.Sphinx.build"]
-type = "method"
 description = """
 Builds the documentation.
 """
 calls = [
-    {type="enter",  context="if", name="force_all"},
-    {name="sphinx.builders.Builder.build_all"},
-    {type="exit", context="if", name="force_all"},
-    {type="enter", context="elif", name="filenames"},
-    {name="sphinx.builders.Builder.build_specific"},
-    {type="exit", context="elif", name="filenames"},
-    {type="enter", context="else", name=""},
-    {name="sphinx.builders.Builder.build_update"},
-    {type="exit", context="else", name=""},
-    {type="emit", name="build-finished"},
+    {type="enter",  context="if", text="force_all"},
+    {text="sphinx.builders.Builder.build_all"},
+    {type="exit", context="if", text="force_all"},
+    {type="enter", context="elif", text="filenames"},
+    {text="sphinx.builders.Builder.build_specific"},
+    {type="exit", context="elif", text="filenames"},
+    {type="enter", context="else", text=""},
+    {text="sphinx.builders.Builder.build_update"},
+    {type="exit", context="else", text=""},
+    {type="emit", text="build-finished"},
 ]
 
 [objects."sphinx.builders.Builder.build_all"]
-type = "method"
 description = """
 Build all documents.
 """
 calls = [
-    {name="sphinx.builders.Builder.compile_all_catalogs", obj_type="method"},
-    {name="sphinx.builders.Builder.build"},
+    {text="sphinx.builders.Builder.compile_all_catalogs", obj_type="method"},
+    {text="sphinx.builders.Builder.build"},
 ]
 
 [objects."sphinx.builders.Builder.build_specific"]
-type = "method"
 description = """
 Build only specific documents.
 """
 calls = [
-    {name="sphinx.builders.Builder.compile_specific_catalogs", obj_type="method"},
-    {name="sphinx.builders.Builder.build"},
+    {text="sphinx.builders.Builder.compile_specific_catalogs", obj_type="method"},
+    {text="sphinx.builders.Builder.build"},
 ]
 
 [objects."sphinx.builders.Builder.build_update"]
-type = "method"
 description = """
 Build only updated documents.
 """
 calls = [
-    {name="sphinx.builders.Builder.compile_update_catalogs", obj_type="method"},
-    {name="sphinx.builders.Builder.get_outdated_docs", obj_type="method"},
-    {name="sphinx.builders.Builder.build"},
+    {text="sphinx.builders.Builder.compile_update_catalogs", obj_type="method"},
+    {text="sphinx.builders.Builder.get_outdated_docs", obj_type="method"},
+    {text="sphinx.builders.Builder.build"},
 ]
 
 [objects."sphinx.builders.Builder.build"]
-type = "method"
 calls = [
-    {name="sphinx.builders.Builder.read"},
-    {name="sphinx.environment.BuildEnvironment.check_dependents"},
-    {type="enter", context="if", name="updated_docnames"},
-    {name="cache BuildEnvironment to disk", warn_no_object=false},
+    {text="sphinx.builders.Builder.read"},
+    {text="sphinx.environment.BuildEnvironment.check_dependents"},
+    {type="enter", context="if", text="updated_docnames"},
+    {text="cache BuildEnvironment to disk", is_ref=false},
     # pickle the environment
     # check consistency
-    {type="exit", context="if", name="updated_docnames"},
+    {type="exit", context="if", text="updated_docnames"},
     # TODO next calls
 
 ]
 
 [objects."sphinx.environment.BuildEnvironment.check_dependents"]
-type = "method"
 calls = [
-    {type="emit", name="env-get-updated"},
+    {type="emit", text="env-get-updated"},
 ]
 
 [objects."sphinx.builders.Builder.read"]
-type = "method"
 description = """
 (Re-)read all files new or changed since last update.
 """
 calls = [
-    {name="sphinx.environment.BuildEnvironment.find_files", obj_type="method"},
-    {name="sphinx.environment.BuildEnvironment.get_outdated_files", obj_type="method"},
-    {type="emit", name="env-get-outdated"},
-    {type="enter", context="for", name="removed"},
-    {type="emit", name="env-purge-doc"},
-    {name="sphinx.environment.BuildEnvironment.clear_doc"},
-    {type="exit", context="for", name="removed"},
-    {type="emit", name="env-before-read-docs"},
-    {type="enter", context="if", name="run_parallel"},
-    {name="sphinx.builders.Builder._read_parallel"},
-    {type="exit", context="if", name="run_parallel"},
-    {type="enter", context="else", name=""},
-    {name="sphinx.builders.Builder._read_serial"},
-    {type="exit", context="else", name=""},
-    {type="emit", name="env-updated"},
+    {text="sphinx.environment.BuildEnvironment.find_files", obj_type="method"},
+    {text="sphinx.environment.BuildEnvironment.get_outdated_files", obj_type="method"},
+    {type="emit", text="env-get-outdated"},
+    {type="enter", context="for", text="removed"},
+    {type="emit", text="env-purge-doc"},
+    {text="sphinx.environment.BuildEnvironment.clear_doc"},
+    {type="exit", context="for", text="removed"},
+    {type="emit", text="env-before-read-docs"},
+    {type="enter", context="if", text="run_parallel"},
+    {text="sphinx.builders.Builder._read_parallel"},
+    {type="exit", context="if", text="run_parallel"},
+    {type="enter", context="else", text=""},
+    {text="sphinx.builders.Builder._read_serial"},
+    {type="exit", context="else", text=""},
+    {type="emit", text="env-updated"},
 ]
 
 [objects."sphinx.environment.BuildEnvironment.clear_doc"]
-type = "method"
 calls = [
-    {type="enter", context="for", name="domains"},
-    {name="sphinx.domains.Domain.clear_doc", obj_type="method", warn_no_object=false},
-    {type="exit", context="for", name="domains"},
+    {type="enter", context="for", text="domains"},
+    {text="sphinx.domains.Domain.clear_doc", obj_type="method", warn_no_object=false},
+    {type="exit", context="for", text="domains"},
 ]
 
 [objects."sphinx.builders.Builder._read_serial"]
-type = "method"
 calls = [
-    {type="enter", context="for", name="docname"},
-    {type="emit", name="env-before-read-docs"},
-    {name="sphinx.environment.BuildEnvironment.clear_doc"},
-    {name="sphinx.builders.Builder.read_doc"},
-    {type="exit", context="for", name="docname"},
+    {type="enter", context="for", text="docname"},
+    {type="emit", text="env-before-read-docs"},
+    {text="sphinx.environment.BuildEnvironment.clear_doc"},
+    {text="sphinx.builders.Builder.read_doc"},
+    {type="exit", context="for", text="docname"},
 ]
 
 [objects."sphinx.builders.Builder._read_parallel"]
-type = "method"
 calls = [
-    {type="enter", context="for", name="docname"},
-    {type="emit", name="env-before-read-docs"},
-    {name="sphinx.environment.BuildEnvironment.clear_doc"},
-    {type="exit", context="for", name="docname"},
-    {type="enter", context="fork", name="docnames_chunk"},
-    {type="enter", context="for", name="docname"},
-    {name="sphinx.builders.Builder.read_doc"},
-    {type="exit", context="for", name="docname"},
-    {name="sphinx.environment.BuildEnvironment.merge_info_from"},
-    {type="exit", context="fork", name="docnames_chunk"},
+    {type="enter", context="for", text="docname"},
+    {type="emit", text="env-before-read-docs"},
+    {text="sphinx.environment.BuildEnvironment.clear_doc"},
+    {type="exit", context="for", text="docname"},
+    {type="enter", context="fork", text="docnames_chunk"},
+    {type="enter", context="for", text="docname"},
+    {text="sphinx.builders.Builder.read_doc"},
+    {type="exit", context="for", text="docname"},
+    {text="sphinx.environment.BuildEnvironment.merge_info_from"},
+    {type="exit", context="fork", text="docnames_chunk"},
 ]
 
 [objects."sphinx.builders.Builder.read_doc"]
-type = "method"
 description = """
 Retrieve the parser, based on source_suffix,
 and generate the initial doctree, then perform transforms.
 """
 calls = [
-    {type="enter", context="with", name="sphinx.util.docutils.sphinx_domains"},
-    {type="enter", context="with", name="sphinx.util.rst.default_role"},
-    {name="docutils.core.Publisher.publish"},
-    {type="exit", context="with", name="sphinx.util.rst.default_role"},
-    {type="exit", context="with", name="sphinx.util.docutils.sphinx_domains"},
-    {name="sphinx.builders.Builder.write_doctree"},
+    {type="enter", context="with", text="sphinx.util.docutils.sphinx_domains", is_ref=true},
+    {type="enter", context="with", text="sphinx.util.rst.default_role", is_ref=true},
+    {text="docutils.core.Publisher.publish"},
+    {type="exit", context="with", text="sphinx.util.rst.default_role"},
+    {type="exit", context="with", text="sphinx.util.docutils.sphinx_domains"},
+    {text="sphinx.builders.Builder.write_doctree"},
 ]
 
 [objects."sphinx.util.docutils.sphinx_domains"]
@@ -285,34 +263,30 @@ to be the one specified in the configuration.
 """
 
 [objects."docutils.core.Publisher.publish"]
-type = "method"
 calls = [
-    {name="sphinx.io.SphinxStandaloneReader.read"},
-    {type="apply_transforms", name="apply transfroms"},
+    {text="sphinx.io.SphinxStandaloneReader.read"},
+    {type="apply_transforms", text="apply transfroms"},
 ]
 
 [objects."sphinx.io.SphinxStandaloneReader.read"]
-type = "method"
 calls = [
-    {type="emit", name="source-read"},
+    {type="emit", text="source-read"},
 ]
 
 [objects."sphinx.builders.Builder.write_doctree"]
-type = "method"
 description = """
 Cache the doctree to a file in the doctreedir.
 """
 
 [objects."sphinx.environment.BuildEnvironment.merge_info_from"]
-type = "method"
 description = """
 Merge the information from the forked process back into the main process.
 """
 calls = [
-    {type="enter", context="for", name="domain"},
-    {name="sphinx.domains.Domain.merge_domaindata", obj_type="method", warn_no_object=false},
-    {type="exit", context="for", name="domain"},
-    {type="emit", name="env-merge-info"},
+    {type="enter", context="for", text="domain"},
+    {text="sphinx.domains.Domain.merge_domaindata", obj_type="method", warn_no_object=false},
+    {type="exit", context="for", text="domain"},
+    {type="emit", text="env-merge-info"},
 ]
 
 [transforms]

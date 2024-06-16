@@ -25,7 +25,7 @@ class Object(BaseModel):
     """A python object."""
 
     description: str = ""
-    type: Literal["function", "method"]
+    type: Literal["function", "method"] = "method"
     calls: list["Call"] = Field(default_factory=list)
 
 
@@ -55,23 +55,30 @@ class Transform(BaseModel):
 class Call(BaseModel):
     """A call from one object to another."""
 
-    name: str
+    text: str
     """The fully qualified name of the object being called."""
 
     type: Literal[
-        None,
+        "standard",
         "enter",
         "exit",
         "emit",
         "apply_transforms",
-    ] = None
+    ] = "standard"
     """The type of call."""
+
+    is_ref: bool | None = None
+    """Whether the text is a reference to the object being called.
+
+    Defaults to true if type is "standard", false otherwise.
+    """
 
     context: Literal["for", "with", "if", "elif", "else", "fork", None] = None
     """The context of the call, if type is enter/exit."""
 
     obj_type: Literal["function", "method", None] = None
     """The type of the object being called."""
+
     warn_no_object: bool = True
     """Whether to warn if the object being called does not have its own node."""
 
@@ -110,29 +117,35 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
                     indent -= 1
                     continue
 
-                obj_type = call.obj_type
-                if obj := data.objects.get(call.name):
-                    obj_type = obj.type
-                name = path2name(call.name, obj_type)
+                is_ref = (
+                    call.is_ref if call.is_ref is not None else call.type == "standard"
+                )
+
+                text = call.text
+                if is_ref:
+                    obj_type = call.obj_type
+                    if obj := data.objects.get(call.text):
+                        obj_type = obj.type
+                    text = path2name(call.text, obj_type)
 
                 indent_str = " " * indent * 4
                 cell_kwargs = {}
 
                 if call.type == "enter":
-                    name = f"{call.context} {name}:"
+                    text = f"{call.context} {text}:"
                     indent += 1
                 elif call.type == "emit":
-                    name = f"emit {name}"
+                    text = f"emit {text}"
                     cell_kwargs["bgcolor"] = "lightblue"
                 if call.type == "apply_transforms":
                     cell_kwargs["bgcolor"] = "lightyellow"
 
-                name = indent_str + name
+                text = indent_str + text
 
                 table.add_row(
                     [
                         html.TableCell(
-                            name,
+                            text,
                             align="LEFT",
                             port=str(port_num),
                             border=1,
@@ -141,14 +154,40 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
                     ]
                 )
 
-                if call.type == "apply_transforms":
-                    graph.edge(
-                        path + ":" + str(port_num), "_apply_transforms", style="dashed"
-                    )
-                elif call.name in data.objects or call.name in data.events:
-                    graph.edge(path + ":" + str(port_num), call.name)
-                elif call.warn_no_object and call.type != "enter":
-                    warning(f"{call.name!r} not found, called from {path!r}")
+                match call.type:
+                    case "standard":
+                        if is_ref:
+                            if call.text not in data.objects:
+                                if call.warn_no_object:
+                                    warning(
+                                        f"{call.text!r} not found, called from {path!r}"
+                                    )
+                            else:
+                                graph.edge(path + ":" + str(port_num), call.text)
+                    case "enter":
+                        if is_ref:
+                            if call.text not in data.objects:
+                                if call.warn_no_object:
+                                    warning(
+                                        f"{call.text!r} not found, called from {path!r}"
+                                    )
+                            else:
+                                graph.edge(path + ":" + str(port_num), call.text)
+                    case "emit":
+                        if call.text not in data.events:
+                            warning(
+                                f"{call.text!r} event not found, called from {path!r}"
+                            )
+                        else:
+                            graph.edge(path + ":" + str(port_num), call.text)
+                    case "apply_transforms":
+                        graph.edge(
+                            path + ":" + str(port_num),
+                            "_apply_transforms",
+                            style="dashed",
+                        )
+                    case _:
+                        warning(f"Unknown call type {call.type!r}")
 
         graph.node(
             path, label=html.html(str(table)), shape="box", style="rounded", margin=".2"
