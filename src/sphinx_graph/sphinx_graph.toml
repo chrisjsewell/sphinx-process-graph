@@ -182,8 +182,21 @@ calls = [
 [objects."sphinx.builders.Builder.build"]
 type = "method"
 calls = [
-    {name="sphinx.builders.Builder.read"},  # TODO return updated_docnames
+    {name="sphinx.builders.Builder.read"},
+    {name="sphinx.environment.BuildEnvironment.check_dependents"},
+    {type="enter", context="if", name="updated_docnames"},
+    {name="cache BuildEnvironment to disk", warn_no_object=false},
+    # pickle the environment
+    # check consistency
+    {type="exit", context="if", name="updated_docnames"},
     # TODO next calls
+
+]
+
+[objects."sphinx.environment.BuildEnvironment.check_dependents"]
+type = "method"
+calls = [
+    {type="emit", name="env-get-updated"},
 ]
 
 [objects."sphinx.builders.Builder.read"]
@@ -244,10 +257,201 @@ calls = [
 
 [objects."sphinx.builders.Builder.read_doc"]
 type = "method"
+description = """
+Retrieve the parser, based on source_suffix,
+and generate the initial doctree, then perform transforms.
+"""
 calls = [
-    # TODO next calls
+    {type="enter", context="with", name="sphinx.util.docutils.sphinx_domains"},
+    {type="enter", context="with", name="sphinx.util.rst.default_role"},
+    {name="docutils.core.Publisher.publish"},
+    {type="exit", context="with", name="sphinx.util.rst.default_role"},
+    {type="exit", context="with", name="sphinx.util.docutils.sphinx_domains"},
+    {name="sphinx.builders.Builder.write_doctree"},
 ]
 
+[objects."sphinx.util.docutils.sphinx_domains"]
+type = "function"
+description = """
+Monkey-patch directive and role dispatch,
+so that domain-specific markup takes precedence.
+"""
+
+[objects."sphinx.util.rst.default_role"]
+type = "function"
+description = """
+Monkey-patch the docutils default role,
+to be the one specified in the configuration.
+"""
+
+[objects."docutils.core.Publisher.publish"]
+type = "method"
+calls = [
+    {name="sphinx.io.SphinxStandaloneReader.read"},
+    {type="apply_transforms", name="apply transfroms"},
+]
+
+[objects."sphinx.io.SphinxStandaloneReader.read"]
+type = "method"
+calls = [
+    {type="emit", name="source-read"},
+]
+
+[objects."sphinx.builders.Builder.write_doctree"]
+type = "method"
+description = """
+Cache the doctree to a file in the doctreedir.
+"""
+
+[objects."sphinx.environment.BuildEnvironment.merge_info_from"]
+type = "method"
+description = """
+Merge the information from the forked process back into the main process.
+"""
+calls = [
+    {type="enter", context="for", name="domain"},
+    {name="sphinx.domains.Domain.merge_domaindata", obj_type="method", warn_no_object=false},
+    {type="exit", context="for", name="domain"},
+    {type="emit", name="env-merge-info"},
+]
+
+[transforms]
+"sphinx.transforms.ApplySourceWorkaround" = {priority = 10, doc = """
+Update source and rawsource attributes.
+"""}
+"sphinx.transforms.ExtraTranslatableNodes" = {priority = 10, doc = """
+Make nodes translatable.
+"""}
+"sphinx.transforms.i18n.PreserveTranslatableMessages" = {priority = 10, doc = """
+Preserve original translatable messages before translation
+"""}
+"sphinx.transforms.i18n.Locale" = {priority = 20, doc = """
+Replace translatable nodes with their translated doctree.
+"""}
+"sphinx.transforms.i18n.TranslationProgressTotaliser" = {priority = 25, doc = """
+Calculate the number of translated and untranslated nodes.
+"""}
+"sphinx.transforms.compact_bullet_list.RefOnlyBulletListTransform" = {priority = 100, doc = """
+Change refonly bullet lists to use compact_paragraphs.
+"""}
+"sphinx.transforms.UnreferencedFootnotesDetector" = {priority = 200, doc = """
+Detect unreferenced footnotes and emit warnings.
+"""}
+"sphinx.transforms.DefaultSubstitutions" = {priority = 210, doc = """
+Replace some substitutions if they aren't defined in the document.
+"""}
+"sphinx.transforms.MoveModuleTargets" = {priority = 210, doc = """
+Move Python module targets that are the first thing in a section
+to the section title.
+"""}
+"sphinx.transforms.HandleCodeBlocks" = {priority = 210, doc = """
+Several code block related transformations.
+"""}
+"sphinx.transforms.AutoNumbering" = {priority = 210, doc = """
+Register IDs of tables, figures and literal_blocks to assign numbers.
+"""}
+"sphinx.transforms.AutoIndexUpgrader" = {priority = 210, doc = """
+Detect old style (4 column based indices)
+and automatically upgrade to new style.
+"""}
+"docutils.transforms.references.Substitutions" = {priority = 220, doc = """
+Replace substitution references with their definitions.
+"""}
+"sphinx.transforms.ReorderConsecutiveTargetAndIndexNodes" = {priority = 220, doc = """
+Ensure target nodes come after index nodes,
+so that PropagateTargets transformation can combine them.
+"""}
+"docutils.transforms.references.PropagateTargets" = {priority = 260, doc = """
+Propagate empty internal targets to the next element.
+"""}
+"sphinx.transforms.SortIds" = {priority = 261, doc = """
+Sort section IDs so that the "id[0-9]+" one comes last.
+"""}
+"docutils.transforms.frontmatter.DocTitle" = {priority = 320, hide=true, doc = """
+If doctitle_xform is enabled (default False),
+promote initial section titles to document title.
+"""}
+"docutils.transforms.frontmatter.DocInfo" = {priority = 340, doc = """
+If the document contains a field list as the first element,
+registered bibliographic field names are transformed
+to the corresponding DTD elements.
+"""}
+"docutils.transforms.frontmatter.SectionSubTitle" = {priority = 350, hide=true, doc = """
+If sectsubtitle_xform is enabled (default False),
+promote initial sub-section to subtitle.
+"""}
+"docutils.transforms.references.AnonymousHyperlinks" = {priority = 440, doc = """
+Propogate refuri/refid from targets to anonymous references.
+"""}
+"docutils.transforms.references.IndirectHyperlinks" = {priority = 460, doc = """
+Flatten indirect references of targets/references
+to one-hop indirect references.
+"""}
+"sphinx.transforms.DoctestTransform" = {priority = 500, doc = """
+Set "doctest" style to each doctest_block node
+"""}
+"sphinx.transforms.GlossarySorter" = {priority = 500, doc = """
+Sort glossaries that have the sorted flag.
+"""}
+"sphinx.domains.citation.CitationDefinitionTransform" = {priority = 619, doc = """
+Mark citation definition labels as not smartquoted.
+"""}
+"sphinx.domains.citation.CitationReferenceTransform" = {priority = 619, doc = """
+Replace citation references by pending_xref nodes before the default
+docutils transform tries to resolve them.
+"""}
+"docutils.transforms.references.Footnotes" = {priority = 620, doc = """
+Assign numbers to autonumbered footnotes,
+and resolve links to footnotes, citations, and their references.
+"""}
+"docutils.transforms.references.ExternalTargets" = {priority = 640, doc = """
+Replace "refname" attribute of rererence nodes by "refuri"
+"""}
+"docutils.transforms.references.InternalTargets" = {priority = 660, doc = """
+Replace "refname" attribute of rererence nodes by "refid"
+"""}
+"sphinx.builders.latex.transforms.FootnoteDocnameUpdater" = {priority = 700, doc = """
+Add docname to footnote and footnote_reference nodes.
+"""}
+"docutils.transforms.universal.StripComments" = {priority = 740, hide=true, doc = """
+Remove comment elements from the document tree
+(only if the strip_comments setting is enabled).
+"""}
+"sphinx.transforms.SphinxSmartQuotes" = {priority = 750, doc = """
+Replace ASCII quotation marks with typographic form.
+Also replace multiple dashes with em-dash/en-dash characters.
+(only if the smartquotes setting is enabled).
+"""}
+"docutils.transforms.universal.Decorations" = {priority = 820, doc = """
+Populate a document's decoration element (header, footer).
+"""}
+"docutils.transforms.misc.Transitions" = {priority = 830, doc = """
+Move transitions at the end of sections up the tree.
+"""}
+"docutils.transforms.universal.ExposeInternals" = {priority = 840, hide=true, doc = """
+Expose internal attributes if ``expose_internals`` setting is set.
+"""}
+"sphinx.transforms.references.SphinxDanglingReferences" = {priority = 850, doc = """
+DanglingReferences transform which does not output info messages.
+"""}
+"sphinx.transforms.references.SphinxDomains" = {priority = 850, doc = """
+Collect objects to Sphinx domains for cross references.
+"""}
+"sphinx.transforms.DoctreeReadEvent" = {priority = 880, emit="doctree-read", doc = """
+Emit doctree-read event.
+"""}
+"sphinx.versioning.UIDTransform" = {priority = 880, doc = """
+Add UIDs to doctree for versioning.
+"""}
+"sphinx.transforms.i18n.AddTranslationClasses" = {priority = 950, doc = """
+Add ``translated`` or ``untranslated`` classes to indicate translation status.
+"""}
+"sphinx.transforms.FilterSystemMessages" = {priority = 999, doc = """
+Filter system messages from a doctree.
+"""}
+"sphinx.transforms.i18n.RemoveTranslatableInline" = {priority = 999, doc = """
+Remove inline nodes used for translation as placeholders.
+"""}
 
 [events.config-inited.callbacks]
 "sphinx.builders.epub3.convert_epub_css_files" = {priority = 800, doc = """
@@ -335,14 +539,13 @@ Some initializations for the C++ domain.
 Adjust root_doc to 'contents' to support an old project
 which does not have any root_doc setting.
 """}
-# TODO all below use default inherited from EnvironmentCollector, returns []
-# grey out?
-"sphinx.environment.collectors.dependencies.DependenciesCollector.get_outdated_docs" = {priority = 500}
-"sphinx.environment.collectors.asset.ImageCollector.get_outdated_docs" = {priority = 500}
-"sphinx.environment.collectors.asset.DownloadFileCollector.get_outdated_docs" = {priority = 500}
-"sphinx.environment.collectors.metadata.MetadataCollector.get_outdated_docs" = {priority = 500}
-"sphinx.environment.collectors.title.TitleCollector.get_outdated_docs" = {priority = 500}
-"sphinx.environment.collectors.toctree.TocTreeCollector.get_outdated_docs" = {priority = 500}
+# all below use default inherited from EnvironmentCollector -> returns []
+"sphinx.environment.collectors.dependencies.DependenciesCollector.get_outdated_docs" = {priority = 500, hide=true}
+"sphinx.environment.collectors.asset.ImageCollector.get_outdated_docs" = {priority = 500, hide=true}
+"sphinx.environment.collectors.asset.DownloadFileCollector.get_outdated_docs" = {priority = 500, hide=true}
+"sphinx.environment.collectors.metadata.MetadataCollector.get_outdated_docs" = {priority = 500, hide=true}
+"sphinx.environment.collectors.title.TitleCollector.get_outdated_docs" = {priority = 500, hide=true}
+"sphinx.environment.collectors.toctree.TocTreeCollector.get_outdated_docs" = {priority = 500, hide=true}
 
 [events.env-purge-doc.callbacks]
 "sphinx.environment.collectors.dependencies.DependenciesCollector.clear_doc" = {priority = 500}
@@ -355,5 +558,48 @@ which does not have any root_doc setting.
 [events.env-before-read-docs.callbacks]
 
 [events.env-updated.callbacks]
+
+[events.source-read.callbacks]
+
+[events.doctree-read.callbacks]
+"sphinx.environment.collectors.dependencies.DependenciesCollector.process_doc" = {priority = 500, doc = """
+Process docutils-generated dependency info.
+"""}
+"sphinx.environment.collectors.asset.ImageCollector.process_doc" = {priority = 500, doc = """
+Process and rewrite image URIs.
+"""}
+"sphinx.environment.collectors.asset.DownloadFileCollector.process_doc" = {priority = 500, doc = """
+Process downloadable file paths.
+"""}
+"sphinx.environment.collectors.metadata.MetadataCollector.process_doc" = {priority = 500, doc = """
+Process the docinfo part of the doctree as metadata.
+"""}
+"sphinx.environment.collectors.title.TitleCollector.process_doc" = {priority = 500, doc = """
+Add a title node to the document (just copy the first section title),
+and store that title in the environment.
+"""}
+"sphinx.environment.collectors.toctree.TocTreeCollector.process_doc" = {priority = 500, doc = """
+Build a TOC from the doctree and store it in the inventory.
+"""}
+
+[events.env-get-updated.callbacks]
+"sphinx.environment.collectors.dependencies.DependenciesCollector.get_updated_docs" = {priority = 500, hide=true}
+"sphinx.environment.collectors.asset.ImageCollector.get_updated_docs" = {priority = 500, hide=true}
+"sphinx.environment.collectors.asset.DownloadFileCollector.get_updated_docs" = {priority = 500, hide=true}
+"sphinx.environment.collectors.metadata.MetadataCollector.get_updated_docs" = {priority = 500, hide=true}
+"sphinx.environment.collectors.title.TitleCollector.get_updated_docs" = {priority = 500, hide=true}
+"sphinx.environment.collectors.toctree.TocTreeCollector.get_updated_docs" = {priority = 500, doc = """
+For numbered toctrees, assign section numbers to each heading,
+and figure numbers to each figure.
+Return docnames whose section numbers changed.
+"""}
+
+[events.env-merge-info.callbacks]
+"sphinx.environment.collectors.dependencies.DependenciesCollector.merge_other" = {priority = 500}
+"sphinx.environment.collectors.asset.ImageCollector.merge_other" = {priority = 500}
+"sphinx.environment.collectors.asset.DownloadFileCollector.merge_other" = {priority = 500}
+"sphinx.environment.collectors.metadata.MetadataCollector.merge_other" = {priority = 500}
+"sphinx.environment.collectors.title.TitleCollector.merge_other" = {priority = 500}
+"sphinx.environment.collectors.toctree.TocTreeCollector.merge_other" = {priority = 500}
 
 [events.build-finished.callbacks]

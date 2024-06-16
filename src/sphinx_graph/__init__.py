@@ -18,6 +18,7 @@ class Data(BaseModel):
     objects: dict[str, "Object"]
     """The objects in the graph, keyed by their fully qualified name."""
     events: dict[str, "Event"]
+    transforms: dict[str, "Transform"]
 
 
 class Object(BaseModel):
@@ -39,6 +40,16 @@ class EventCallback(BaseModel):
 
     priority: int
     doc: str = ""
+    hide: bool = False
+
+
+class Transform(BaseModel):
+    """A transform for a sphinx event."""
+
+    priority: int
+    hide: bool = False
+    doc: str = ""
+    emit: str | None = None
 
 
 class Call(BaseModel):
@@ -48,14 +59,16 @@ class Call(BaseModel):
     """The fully qualified name of the object being called."""
 
     type: Literal[
-        "standard",
+        None,
         "enter",
         "exit",
         "emit",
-    ] = "standard"
+        "apply_transforms",
+    ] = None
     """The type of call."""
 
     context: Literal["for", "with", "if", "elif", "else", "fork", None] = None
+    """The context of the call, if type is enter/exit."""
 
     obj_type: Literal["function", "method", None] = None
     """The type of the object being called."""
@@ -68,7 +81,7 @@ def warning(message: str) -> None:
     print(f"Warning: {message}", file=sys.stderr)
 
 
-def build_graph(data: Data) -> Digraph:  # noqa: PLR0912
+def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
     """Build a graph of the build process of a Sphinx project."""
 
     graph = Digraph(comment=data.comment, graph_attr={"rankdir": "LR"})
@@ -111,6 +124,8 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912
                 elif call.type == "emit":
                     name = f"emit {name}"
                     cell_kwargs["bgcolor"] = "lightblue"
+                if call.type == "apply_transforms":
+                    cell_kwargs["bgcolor"] = "lightyellow"
 
                 name = indent_str + name
 
@@ -126,7 +141,11 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912
                     ]
                 )
 
-                if call.name in data.objects or call.name in data.events:
+                if call.type == "apply_transforms":
+                    graph.edge(
+                        path + ":" + str(port_num), "_apply_transforms", style="dashed"
+                    )
+                elif call.name in data.objects or call.name in data.events:
                     graph.edge(path + ":" + str(port_num), call.name)
                 elif call.warn_no_object and call.type != "enter":
                     warning(f"{call.name!r} not found, called from {path!r}")
@@ -145,6 +164,8 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912
             ]
         )
         for callback_name, callback_data in event_data.callbacks.items():
+            if callback_data.hide:
+                continue
             table.add_row(
                 [
                     html.TableCell(
@@ -173,6 +194,52 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912
         graph.node(
             name, label=html.html(str(table)), shape="box", style="rounded", margin=".2"
         )
+
+    table = html.Table(border=0, cellspacing=0)
+    table.add_row(
+        [
+            html.TableCell(
+                html.u("Transforms"), align="CENTER", colspan=2, bgcolor="lightyellow"
+            )
+        ]
+    )
+    for tr_name, tr_data in data.transforms.items():
+        if tr_data.hide:
+            continue
+        table.add_row(
+            [
+                html.TableCell(
+                    tr_name[len("sphinx.") :]
+                    if tr_name.startswith("sphinx.")
+                    else tr_name,
+                    align="LEFT",
+                    border=1,
+                    cellpadding=3,
+                ),
+                html.TableCell(
+                    str(tr_data.priority), align="CENTER", border=1, port=tr_name
+                ),
+            ]
+        )
+        if tr_data.emit:
+            graph.edge("_apply_transforms:" + tr_name, tr_data.emit)
+        if tr_data.doc:
+            table.add_row(
+                [
+                    html.TableCell(
+                        tr_data.doc.replace("\n", html.br("LEFT")),
+                        align="LEFT",
+                        colspan=2,
+                    )
+                ]
+            )
+    graph.node(
+        "_apply_transforms",
+        label=html.html(str(table)),
+        shape="box",
+        style="rounded",
+        margin=".2",
+    )
 
     return graph
 
