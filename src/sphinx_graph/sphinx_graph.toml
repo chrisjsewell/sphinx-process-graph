@@ -393,7 +393,25 @@ description = """
 Handle parts of write_doc that must be called in the main process
 if parallel build is active.
 """
-# TODO html implementations
+overrides = ["sphinx.builders.html.StandaloneHTMLBuilder.write_doc_serialized"]
+
+[objects."sphinx.builders.html.StandaloneHTMLBuilder.write_doc_serialized"]
+calls = [
+    { text = "sphinx.builders.html.StandaloneHTMLBuilder.post_process_images" },
+    # TODO partial render of longtitle
+    { text = "sphinx.builders.html.StandaloneHTMLBuilder.index_page" },
+]
+
+[objects."sphinx.builders.html.StandaloneHTMLBuilder.post_process_images"]
+description = """
+Pick the best candidate for an image and
+link down-scaled images to their high res version.
+"""
+
+[objects."sphinx.builders.html.StandaloneHTMLBuilder.index_page"]
+description = """
+Add page to the IndexerBuilder
+"""
 
 [objects."sphinx.builders.Builder.write_doc"]
 overridable = true

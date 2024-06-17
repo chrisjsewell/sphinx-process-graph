@@ -1,0 +1,20 @@
+version: 2
+
+sphinx:
+  configuration: docs/conf.py
+  builder: html
+  fail_on_warning: true
+
+python:
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
+
+build:
+  os: ubuntu-22.04
+  apt_packages:
+    - graphviz
+  tools:
+    python: "3.11"

@@ -15,6 +15,12 @@ dependencies = [
     "pydantic~=2.7",
 ]
 
+[project.optional-dependencies]
+docs = [
+    "sphinx",
+    "furo",
+]
+
 [tool.ruff.lint]
 extend-select = [
     "B",   # flake8-bugbear
@@ -50,4 +56,8 @@ usedevelop = true
 
 [testenv:svg]
 commands = python -m sphinx_graph
+
+[testenv:docs]
+extras = docs
+commands = sphinx-build -nW --keep-going -b html docs docs/_build
 """

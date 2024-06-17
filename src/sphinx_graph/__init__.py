@@ -2,7 +2,9 @@
 
 __version__ = "0.1.0"
 
+from pathlib import Path
 import sys
+import tomllib
 from typing import Literal
 
 from graphviz import Digraph
@@ -34,6 +36,8 @@ class Object(BaseModel):
     calls: list["Call"] = Field(default_factory=list)
     overridable: bool = False
     """Whether the object can be overridden by a subclass."""
+    overrides: list[str] = Field(default_factory=list)
+    """The subclass objects that override this object."""
 
 
 class Event(BaseModel):
@@ -118,6 +122,20 @@ def warning(message: str) -> None:
     print(f"Warning: {message}", file=sys.stderr)
 
 
+def build_main(
+    name: str = "sphinx_graph", directory: Path | None = None, format: str = "svg"
+) -> Path:
+    data = tomllib.loads(
+        Path(__file__).parent.joinpath("sphinx_graph.toml").read_text()
+    )
+    model = Data(**data)
+    graph = build_graph(model)
+    # print(graph.source)
+    directory = directory or Path.cwd()
+    graph.render(name, directory, format="svg", cleanup=True)
+    return directory.joinpath(f"{name}.{format}")
+
+
 def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
     """Build a graph of the build process of a Sphinx project."""
 
@@ -131,8 +149,6 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
         table.add_row(
             [html.TableCell(html.u(path2name(path, object_data.type)), align="CENTER")]
         )
-        if object_data.overridable:
-            table.add_row([html.TableCell(html.i("overridable"), align="CENTER")])
 
         if object_data.description:
             table.add_row(
@@ -147,7 +163,8 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
 
         if object_data.calls:
             indent = 0
-            for port_num, call in enumerate(object_data.calls):
+            port_num = 0
+            for call in object_data.calls:
                 if call.type == "exit":
                     indent -= 1
                     continue
@@ -179,6 +196,7 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
 
                 text = indent_str + text
 
+                port_num += 1
                 table.add_row(
                     [
                         html.TableCell(
@@ -231,6 +249,33 @@ def build_graph(data: Data) -> Digraph:  # noqa: PLR0912,PLR0915
                         )
                     case _:
                         warning(f"Unknown call type {call.type!r}")
+
+        if object_data.overrides or object_data.overridable:
+            table.add_row(
+                [
+                    html.TableCell(
+                        html.i("Overridable"),
+                        align="LEFT",
+                        cellpadding=10,
+                    )
+                ]
+            )
+            for override in object_data.overrides:
+                port_num += 1
+                table.add_row(
+                    [
+                        html.TableCell(
+                            path2name(override, object_data.type),
+                            align="LEFT",
+                            border=1,
+                            port=str(port_num),
+                        )
+                    ]
+                )
+                if override not in data.objects:
+                    warning(f"{override!r} not found, override of {path!r}")
+                else:
+                    graph.edge(path + ":" + str(port_num), override, style="dashed")
 
         graph.node(
             path, label=html.html(str(table)), shape="box", style="rounded", margin=".2"
