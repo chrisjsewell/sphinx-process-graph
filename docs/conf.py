@@ -1,9 +1,5 @@
-from pathlib import Path
 from sphinx.application import Sphinx
-from sphinx.util.docutils import SphinxDirective
 from sphinx_graph import __version__, build_main
-from docutils import nodes
-import tempfile
 
 project = "sphinx-graph"
 author = "Chris Sewell"
@@ -14,11 +10,8 @@ html_title = "sphinx-graph"
 
 
 def setup(app: Sphinx):
-    app.add_directive("sphinx-graph", SphinxGraphDirective)
+    app.connect("config-inited", write_image)
 
 
-class SphinxGraphDirective(SphinxDirective):
-    def run(self):
-        with tempfile.TemporaryDirectory() as tempdir:
-            source = build_main(directory=Path(tempdir)).read_text()
-        return [nodes.container("", nodes.raw("", source, format="html"), classes=["sphinx-graph"])]
+def write_image(app: Sphinx, _) -> None:
+    build_main(directory=app.srcdir)
